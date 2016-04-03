@@ -6,13 +6,18 @@ declare let escodegen:{
 };
 
 let id_:number = new Date().getTime()%10000;
+type Transformer<T> = (node:T)=>T
+interface Visitor { 
+  process:Transformer<ASTNode>
+}
+
 export class AST {
 
   static genSymbol() {
     return "__gen"+parseInt(`${Math.random()*1000}`)+(id_++); 
   }
   
-  static visit(visitor:{process:(node:ASTNode)=>ASTNode}, node:ASTNode, parent:ASTNode|[ASTNode] = null, key:string|number = null) {   
+  static visit(visitor:Visitor, node:ASTNode, parent:ASTNode|[ASTNode] = null, key:string|number = null) {   
     node = visitor.process(node);
     [
       'body', 'declarations', 'argument', 'arguments', 'alternate', 'consequent',
@@ -41,7 +46,7 @@ export class AST {
     return ast;
   }
   
-  static toSource(node:FunctionExpression, globals:any):Function {
+  static compile(node:FunctionExpression, globals:any):Function {
     console.log(node);
     let src = `(function() {
       var id_ = new Date().getTime();
@@ -53,7 +58,7 @@ export class AST {
     return eval(src);
   }
 
-  static visitor(conf:{[key:string]:((node:ASTNode)=>ASTNode)}) {
+  static visitor(conf:{[key:string]:Transformer<ASTNode>}) {
     let out = {
       process : function(node:ASTNode):ASTNode {
         if (node['visited']) {
@@ -71,4 +76,10 @@ export class AST {
     };
     return _.extend(out, conf) as typeof out;
   };
+  
+  static rewrite(fn:Function, visitor:Visitor, globals:any) {
+    let ast = AST.parse(fn);   
+    ast = <FunctionExpression>AST.visit(visitor, ast);
+    return AST.compile(ast, globals);
+  }
 }

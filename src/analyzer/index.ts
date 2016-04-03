@@ -1,6 +1,5 @@
 import {AST} from '../ast/index';
 import * as _ from "lodash";
-declare let escodegen:any;
 
 export class Analyzer {
   static templates = {
@@ -113,18 +112,10 @@ export class Analyzer {
       }
     });
   }
-  
-  static invoker(fn:Function) {
-    return function() {
-      let args = Array.prototype.slice.call(arguments, 0);
-      return fn.apply(this, args);
-    }
-  }
 
   static rewrite(fn:Function, globals:any) {
-    globals = _.extend(globals || {}, Analyzer.templates);
-    let ast = AST.parse(fn);   
-    ast = <FunctionExpression>AST.visit(Analyzer.yieldVisitor(), ast);
-    return Analyzer.invoker(AST.toSource(ast, globals));
+    return AST.rewrite(fn, 
+      Analyzer.yieldVisitor(), 
+      _.extend(globals || {}, Analyzer.templates));
   }
 }
