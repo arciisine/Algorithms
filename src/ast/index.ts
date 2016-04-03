@@ -5,11 +5,11 @@ declare let escodegen:{
   generate : (node:ASTNode)=>string
 };
 
+let id_:number = new Date().getTime()%10000;
 export class AST {
-  private static id_:number = new Date().getTime()%10000;
 
   static genSymbol() {
-    return "__gen"+parseInt(`${Math.random()*1000}`)+(AST.id_++); 
+    return "__gen"+parseInt(`${Math.random()*1000}`)+(id_++); 
   }
   
   static visit(visitor:{process:(node:ASTNode)=>ASTNode}, node:ASTNode, parent:ASTNode|[ASTNode] = null, key:string|number = null) {   
@@ -42,11 +42,14 @@ export class AST {
   }
   
   static toSource(node:FunctionExpression, globals:any):Function {
+    console.log(node);
     let src = `(function() {
+      var id_ = new Date().getTime();
+      var genSymbol = ${AST.genSymbol.toString()};
       ${Object.keys(globals || {}).map(k => `var ${k} = ${globals[k].toString()}`).join('\n')} 
       return ${escodegen.generate(node)}; 
     })()`;
-    console.debug(src);
+    console.log(src);
     return eval(src);
   }
 
@@ -66,6 +69,6 @@ export class AST {
         }
       }
     };
-    return _.extend(out, conf);
+    return _.extend(out, conf) as typeof out;
   };
 }

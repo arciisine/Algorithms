@@ -4,35 +4,36 @@ declare let escodegen:any;
 
 export class Analyzer {
   static templates = {
-    __addToStack : function a(stack, args) {
-      var args = Array.prototype.slice.call(args, 1);
-      stack.push(args.map(function(o) { return _.cloneDeep(o); }));
-    },
-    __ifInner : function b() {
-      if (arguments[0].length > 1) {
-        
-      } else {
-        
+    __emit : function a(frameId, action, val) {
+      let out = {frameId,action}
+      if (val !== undefined) {
+        out['value'] = val;
       }
-    },
-    __removeFromStack : function c(stack) {
-      stack.pop();
-    },
-    __model : function model(stack, res) {
-      return { 
-        "stack" : stack.slice(0), 
-        "value" : _.cloneDeep(res) 
-      };
+      return out;
     }
   };
     
   static yieldVisitor() {
-    let nameSym = AST.genSymbol();
-    let stackSym = AST.genSymbol()
     let name = null;
-    let stackAST = {
+    let nameSym = AST.genSymbol();
+    let frameIdAST = {
       type : "Identifier",
-      name   : stackSym  
+      name   : AST.genSymbol()
+    }
+    
+    function emit(action:string, val?:any) {
+      return {
+        type : "YieldExpression",
+        argument : {
+          type : "CallExpression",
+          callee : { name : "__emit", type : "Identifier" },
+          arguments : [
+            frameIdAST, 
+            { type : "Literal", value : action}, 
+            val
+          ].filter(x => !!x)
+        }
+      }
     }
     
     return AST.visitor({
@@ -41,21 +42,25 @@ export class Analyzer {
         
         name = node.id.name; 
         node.generator = true;
-        node.params.unshift(stackAST)
         node.id.name = nameSym;
 
         let body = (node.body as BlockStatement).body;
         body.unshift({
-          type : "CallExpression",
-          callee : {
-            type : "Identifier",
-            name : "__addToStack"
-          },
-          arguments : [stackAST, {
-            type : "Identifier",
-            name : "arguments"
+          type : "VariableDeclaration",
+          kind : "var",
+          declarations : [{ 
+            type : "VariableDeclarator", 
+            id : frameIdAST, 
+            init : {
+              type : "CallExpression",
+              callee : {
+                type : "Identifier",
+                name : "genSymbol"
+              },
+              arguments : []
+            }
           }]
-        });
+        }, emit("enter", { type : "Identifier", name : "arguments"}));
         node.body = {
           type : "BlockStatement",
           body : [{
@@ -63,14 +68,7 @@ export class Analyzer {
             block :  node.body,
             finalizer : {
               type : "BlockStatement",
-              body : [{
-                type : "CallExpression",
-                callee : {
-                  type : "Identifier",
-                  name : "__removeFromStack"
-                },
-                arguments : [stackAST]
-              }]
+              body : [emit("leave")]
             }
           }]
         }         
@@ -80,7 +78,6 @@ export class Analyzer {
         let callee = node.callee as Identifier;
         if (callee.name === name) {
           callee.name = nameSym;
-          node.arguments.unshift(stackAST);
           return  {
             type : "YieldExpression",
             delegate : true,
@@ -89,7 +86,7 @@ export class Analyzer {
         }
       },
       ReturnStatement: function(node:ReturnStatement) {
-        let idAST = { name : AST.genSymbol(), type : "Identifier" };              
+        let retAST = { name : AST.genSymbol(), type : "Identifier" };              
         return {
           type : "BlockStatement",
           body : [
@@ -98,32 +95,19 @@ export class Analyzer {
               kind : "var",
               declarations : [{ 
                 type : "VariableDeclarator", 
-                id : idAST, 
+                id : retAST, 
                 init : node.argument 
               }],            
             },
             {
               type : "ExpressionStatement",
-              expression : { 
-                type : "YieldExpression", 
-                argument : {
-                  type : "CallExpression",
-                  callee : { name : "__model", type : "Identifier" }, 
-                  arguments : [stackAST, idAST]
-                } 
-              }
+              expression : emit("return", retAST)
             },
-            _.extend((AST.parse(Analyzer.templates.__ifInner).body as BlockStatement).body[0], {
-              consequent : {
-                type : "ReturnStatement",
-                argument : idAST,
-                visited : true
-              },
-              alternate : {
-                type : "ReturnStatement",
-                visited : true
-              }
-            })
+            {
+              type : "ReturnStatement",
+              argument : retAST,
+              visited : true
+            }
           ]
         };
       }
@@ -133,8 +117,6 @@ export class Analyzer {
   static invoker(fn:Function) {
     return function() {
       let args = Array.prototype.slice.call(arguments, 0);
-      let stack = [];
-      args.unshift(stack); //Put stack on front
       return fn.apply(this, args);
     }
   }
