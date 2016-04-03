@@ -1,24 +1,42 @@
 import {AST} from '../ast/index';
 declare let escodegen:any;
 
+function copy(res) {
+  if (Array.isArray(res)) {
+    return res.slice(0);
+  } else if (typeof res == 'object' && res.constructor == Object) {
+    var out = {};
+    for (var k in res) out[k] = res[k];
+    return out;
+  } 
+  return res;
+}
+
 export class Analyzer {
-  static templates = {  
-    addToStack : function a() {
-      arguments[0].push(Array.prototype.slice.call(arguments, 1));
+  static templates = {
+    copy,
+    __addToStack : function a(stack, args) {
+      var args = Array.prototype.slice.call(args, 1);
+      stack.push(args.map(function(o) { return copy(o); }));
     },
-    ifInner : function b() {
+    __ifInner : function b() {
       if (arguments[0].length > 1) {
         
       } else {
         
       }
     },
-    removeFromStack : function c() {
-      arguments[0].pop();
+    __removeFromStack : function c(stack) {
+      stack.pop();
+    },
+    __model : function model(stack, res) {
+      return { 
+        "stack" : stack.slice(0), 
+        "value" : copy(res) 
+      };
     }
   };
-
-  
+    
   static yieldVisitor() {
     let nameSym = AST.genSymbol();
     let stackSym = AST.genSymbol()
@@ -38,13 +56,33 @@ export class Analyzer {
         node.id.name = nameSym;
 
         let body = (node.body as BlockStatement).body;
-        body.unshift(AST.parse(Analyzer.templates.addToStack).body)
+        body.unshift({
+          type : "CallExpression",
+          callee : {
+            type : "Identifier",
+            name : "__addToStack"
+          },
+          arguments : [stackAST, {
+            type : "Identifier",
+            name : "arguments"
+          }]
+        });
         node.body = {
           type : "BlockStatement",
           body : [{
             type : "TryStatement",
             block :  node.body,
-            finalizer : AST.parse(Analyzer.templates.removeFromStack).body
+            finalizer : {
+              type : "BlockStatement",
+              body : [{
+                type : "CallExpression",
+                callee : {
+                  type : "Identifier",
+                  name : "__removeFromStack"
+                },
+                arguments : [stackAST]
+              }]
+            }
           }]
         }         
         return node;
@@ -62,7 +100,7 @@ export class Analyzer {
         }
       },
       ReturnStatement: function(node:ReturnStatement) {
-        let id = { name : AST.genSymbol(), type : "Identifier" };
+        let idAST = { name : AST.genSymbol(), type : "Identifier" };              
         return {
           type : "BlockStatement",
           body : [
@@ -71,7 +109,7 @@ export class Analyzer {
               kind : "var",
               declarations : [{ 
                 type : "VariableDeclarator", 
-                id : id, 
+                id : idAST, 
                 init : node.argument 
               }],            
             },
@@ -80,15 +118,16 @@ export class Analyzer {
               expression : { 
                 type : "YieldExpression", 
                 argument : {
-                  type : "ArrayExpression",
-                  elements : [stackAST, id]
+                  type : "CallExpression",
+                  callee : { name : "__model", type : "Identifier" }, 
+                  arguments : [stackAST, idAST]
                 } 
               }
             },
-            AST.extend((AST.parse(Analyzer.templates.ifInner).body as BlockStatement).body[0], {
+            AST.extend((AST.parse(Analyzer.templates.__ifInner).body as BlockStatement).body[0], {
               consequent : {
                 type : "ReturnStatement",
-                argument : id,
+                argument : idAST,
                 visited : true
               },
               alternate : {
@@ -102,7 +141,7 @@ export class Analyzer {
     });
   }
   
-  static invoker(fn) {
+  static invoker(fn:Function) {
     return function() {
       let args = Array.prototype.slice.call(arguments, 0);
       let stack = [];
@@ -111,12 +150,10 @@ export class Analyzer {
     }
   }
 
-  static rewrite(fn) {
+  static rewrite(fn:Function, globals:any) {
+    globals = AST.extend(globals || {}, Analyzer.templates);
     let ast = AST.parse(fn);   
     ast = <FunctionExpression>AST.visit(Analyzer.yieldVisitor(), ast);
-    console.log(ast);
-    let src = '('+escodegen.generate(ast)+')';
-    console.debug(src);
-    return Analyzer.invoker(eval(src));
+    return Analyzer.invoker(AST.toSource(ast, globals));
   }
 }

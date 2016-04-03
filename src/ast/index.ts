@@ -46,8 +46,11 @@ export class AST {
     return a;
   }
   
-  static toSource(node:FunctionExpression):Function {
-    let src = `(${escodegen.generate(node)})`;
+  static toSource(node:FunctionExpression, globals:any):Function {
+    let src = `(function() {
+      ${Object.keys(globals || {}).map(k => `var ${k} = ${globals[k].toString()}`).join('\n')} 
+      return ${escodegen.generate(node)}; 
+    })()`;
     console.debug(src);
     return eval(src);
   }

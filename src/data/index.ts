@@ -43,4 +43,4 @@ function merge(left, right)
     return result;
 }
 console.log("Starting up")
-window['$r'] = Analyzer.rewrite(sum)
+window['$r'] = Analyzer.rewrite(mergeSort, { merge })
