@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+    "allowJs": false,
+    "target" : "es6",
+    "module": "system",
+    "rootDir": "src/",
+    "outFile" : "script/app.js"
+  }
+}

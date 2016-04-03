@@ -1,17 +1,35 @@
-'use strict';
+import {AST} from '../ast/index';
+declare let escodegen:any;
 
-var Analyzer = (function() {
-  function yieldVisitor() {
-    var nameSym = AST.genSymbol();
-    var stackSym = AST.genSymbol()
-    var name = null;
-    var stackAST = {
+export class Analyzer {
+  static templates = {  
+    addToStack : function a() {
+      arguments[0].push(Array.prototype.slice.call(arguments, 1));
+    },
+    ifInner : function b() {
+      if (arguments[0].length > 1) {
+        
+      } else {
+        
+      }
+    },
+    removeFromStack : function c() {
+      arguments[0].pop();
+    }
+  };
+
+  
+  static yieldVisitor() {
+    let nameSym = AST.genSymbol();
+    let stackSym = AST.genSymbol()
+    let name = null;
+    let stackAST = {
       type : "Identifier",
       name   : stackSym  
     }
     
     return AST.visitor({
-      FunctionDeclaration : function(node) {
+      FunctionDeclaration : function(node:FunctionDeclaration) {
         if (name !== null || !node.id || !node.id.name) return;
         
         name = node.id.name; 
@@ -19,21 +37,22 @@ var Analyzer = (function() {
         node.params.unshift(stackAST)
         node.id.name = nameSym;
 
-        var body = node.body.body;
-        body.unshift(AST.parse(templates.addToStack).body)
+        let body = (node.body as BlockStatement).body;
+        body.unshift(AST.parse(Analyzer.templates.addToStack).body)
         node.body = {
           type : "BlockStatement",
           body : [{
             type : "TryStatement",
             block :  node.body,
-            finalizer : AST.parse(templates.removeFromStack).body
+            finalizer : AST.parse(Analyzer.templates.removeFromStack).body
           }]
         }         
         return node;
       },
-      CallExpression : function(node) {
-        if (node.callee.name === name) {
-          node.callee.name = nameSym;
+      CallExpression : function(node:CallExpression) {
+        let callee = node.callee as Identifier;
+        if (callee.name === name) {
+          callee.name = nameSym;
           node.arguments.unshift(stackAST);
           return  {
             type : "YieldExpression",
@@ -42,8 +61,8 @@ var Analyzer = (function() {
           };
         }
       },
-      ReturnStatement: function(node) {
-        var id = { name : AST.genSymbol(), type : "Identifier" };
+      ReturnStatement: function(node:ReturnStatement) {
+        let id = { name : AST.genSymbol(), type : "Identifier" };
         return {
           type : "BlockStatement",
           body : [
@@ -66,10 +85,14 @@ var Analyzer = (function() {
                 } 
               }
             },
-            AST.extend(AST.parse(templates.ifInner).body.body[0], {
+            AST.extend((AST.parse(Analyzer.templates.ifInner).body as BlockStatement).body[0], {
               consequent : {
                 type : "ReturnStatement",
                 argument : id,
+                visited : true
+              },
+              alternate : {
+                type : "ReturnStatement",
                 visited : true
               }
             })
@@ -79,39 +102,21 @@ var Analyzer = (function() {
     });
   }
   
-  function invoker(fn) {
+  static invoker(fn) {
     return function() {
-      var args = Array.prototype.slice.call(arguments, 0);
-      var stack = [];
+      let args = Array.prototype.slice.call(arguments, 0);
+      let stack = [];
       args.unshift(stack); //Put stack on front
       return fn.apply(this, args);
     }
   }
 
-  var templates = {  
-    addToStack : function a() {
-      arguments[0].push(Array.prototype.slice.call(arguments, 1));
-    },
-    ifInner : function b() {
-      if (arguments[0].length > 1) {
-        
-      }
-    },
-    removeFromStack : function c() {
-      arguments[0].pop();
-    }
-  };
-
-  function rewrite(fn) {
-    var ast = AST.parse(fn);   
-    ast = AST.visit(yieldVisitor(), ast);
+  static rewrite(fn) {
+    let ast = AST.parse(fn);   
+    ast = <FunctionExpression>AST.visit(Analyzer.yieldVisitor(), ast);
     console.log(ast);
-    var src = '('+escodegen.generate(ast)+')';
+    let src = '('+escodegen.generate(ast)+')';
     console.debug(src);
-    return invoker(eval(src));
+    return Analyzer.invoker(eval(src));
   }
-  
-  return {
-    rewrite : rewrite
-  }
-})();
+}

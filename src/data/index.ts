@@ -1,3 +1,5 @@
+import {Analyzer} from '../analyzer/index';
+
 var tree = { value : 10, left : { value : 5 }, right : { value : 11 }};
 function sum(node) {
     var ret = 0;
@@ -13,7 +15,7 @@ function mergeSort(arr)
     if (arr.length < 2)
         return arr;
  
-    var middle = parseInt(arr.length / 2);
+    var middle = parseInt(`${arr.length / 2}`);
     var left   = arr.slice(0, middle);
     var right  = arr.slice(middle, arr.length);
  
@@ -40,3 +42,5 @@ function merge(left, right)
  
     return result;
 }
+console.log("Starting up")
+window['$r'] = Analyzer.rewrite(sum)
