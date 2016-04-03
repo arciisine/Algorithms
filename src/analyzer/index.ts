@@ -1,23 +1,12 @@
 import {AST} from '../ast/index';
+import * as _ from "lodash";
 declare let escodegen:any;
-
-function copy(res) {
-  if (Array.isArray(res)) {
-    return res.slice(0);
-  } else if (typeof res == 'object' && res.constructor == Object) {
-    var out = {};
-    for (var k in res) out[k] = res[k];
-    return out;
-  } 
-  return res;
-}
 
 export class Analyzer {
   static templates = {
-    copy,
     __addToStack : function a(stack, args) {
       var args = Array.prototype.slice.call(args, 1);
-      stack.push(args.map(function(o) { return copy(o); }));
+      stack.push(args.map(function(o) { return _.cloneDeep(o); }));
     },
     __ifInner : function b() {
       if (arguments[0].length > 1) {
@@ -32,7 +21,7 @@ export class Analyzer {
     __model : function model(stack, res) {
       return { 
         "stack" : stack.slice(0), 
-        "value" : copy(res) 
+        "value" : _.cloneDeep(res) 
       };
     }
   };
@@ -124,7 +113,7 @@ export class Analyzer {
                 } 
               }
             },
-            AST.extend((AST.parse(Analyzer.templates.__ifInner).body as BlockStatement).body[0], {
+            _.extend((AST.parse(Analyzer.templates.__ifInner).body as BlockStatement).body[0], {
               consequent : {
                 type : "ReturnStatement",
                 argument : idAST,
@@ -151,7 +140,7 @@ export class Analyzer {
   }
 
   static rewrite(fn:Function, globals:any) {
-    globals = AST.extend(globals || {}, Analyzer.templates);
+    globals = _.extend(globals || {}, Analyzer.templates);
     let ast = AST.parse(fn);   
     ast = <FunctionExpression>AST.visit(Analyzer.yieldVisitor(), ast);
     return Analyzer.invoker(AST.toSource(ast, globals));

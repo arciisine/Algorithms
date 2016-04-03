@@ -41,11 +41,6 @@ export class AST {
     return ast;
   }
   
-  static extend<T extends Object>(a:T, b:{}):T {
-    for (let k in b) a[k] = b[k];
-    return a;
-  }
-  
   static toSource(node:FunctionExpression, globals:any):Function {
     let src = `(function() {
       ${Object.keys(globals || {}).map(k => `var ${k} = ${globals[k].toString()}`).join('\n')} 
@@ -71,6 +66,6 @@ export class AST {
         }
       }
     };
-    return AST.extend(out, conf);
+    return _.extend(out, conf);
   };
 }
