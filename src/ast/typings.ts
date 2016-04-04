@@ -1,5 +1,6 @@
 interface ASTNode {}
 interface Statement extends ASTNode { }
+interface ASTFunction extends ASTNode { }
 
 interface EmptyStatement extends Statement {
     type: "EmptyStatement";
@@ -124,7 +125,7 @@ interface DebuggerStatement extends Statement {
 interface Declaration extends Statement { }
 
 
-interface FunctionDeclaration extends Function, Declaration {
+interface FunctionDeclaration extends ASTFunction, Declaration {
     type: "FunctionDeclaration";
     id: Identifier;
     params: Pattern[];
@@ -177,7 +178,7 @@ interface Property extends ASTNode {
     kind: "init" | "get" | "set";
 }
 
-interface FunctionExpression extends Function, Expression {
+interface FunctionExpression extends ASTFunction, Expression {
     type: "FunctionExpression";
     id?: Identifier ;
     params: Pattern[];
@@ -188,7 +189,7 @@ interface FunctionExpression extends Function, Expression {
     expression: boolean;
 }
 
-interface ArrowExpression extends Function, Expression {
+interface ArrowExpression extends ASTFunction, Expression {
     type: "ArrowExpression";
     params: Pattern[];
     defaults: Expression[];

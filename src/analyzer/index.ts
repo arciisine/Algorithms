@@ -9,12 +9,13 @@ import {
   TryCatchFinally, 
   Expr, 
   Return, 
-  Throw
+  Throw,
+  Func
 } from '../ast/helper';
 import * as _ from "lodash";
 
 function emit(ident:Identifier, action:string, val?:any):YieldExpression {
-  return Yield(Call(Id("_emit"), ident, Literal(action), val));
+  return Yield(Call(Id("__emit"), ident, Literal(action), val));
 }
 
 export class Analyzer {
@@ -30,35 +31,37 @@ export class Analyzer {
        
   static yieldVisitor() {
     let name = null;
-    let nameSym = AST.genSymbol();
+    let funcId = Id()
     let frameId = Id()
        
     return AST.visitor({
       FunctionDeclaration : function(node:FunctionDeclaration) {
         if (name !== null || !node.id || !node.id.name) return;
-        
         name = node.id.name; 
-        node.generator = true;
-        node.id.name = nameSym;
 
-        node.body = Block(TryCatchFinally(
+        return Func(
+          funcId,
+          node.params,
           [
-            Vars(frameId, Call(Id("genSymbol"))), 
-            emit(frameId, "enter", Id("arguments")),
-            ...((node.body as BlockStatement).body as ASTNode[])
+            TryCatchFinally(
+              [
+                Vars(frameId, Call(Id("genSymbol"))), 
+                emit(frameId, "invoke", Id("arguments")),
+                ...((node.body as BlockStatement).body as ASTNode[])
+              ],
+              [
+                emit(frameId, "error", Id("e")),
+                Throw(Id('e'))
+              ]
+            )
           ],
-          [
-            emit(frameId, "error", Id("e")),
-            Throw(Id('e'))
-          ],
-          [emit(frameId, "leave")]
-        ))
-        return node;
+          true
+        );
       },
       CallExpression : function(node:CallExpression) {
         let callee = node.callee as Identifier;
         if (callee.name === name) {
-          callee.name = nameSym;
+          callee.name = funcId.name;
           return  Yield(node, true);
         }
       },
@@ -66,7 +69,7 @@ export class Analyzer {
         let retId = Id();              
         return Block(
           Vars(retId, node.argument),
-          Expr(emit(frameId, "return", retId)),
+          emit(frameId, "return", retId),
           _.extend(Return(retId), { visited : true })
         );
       }

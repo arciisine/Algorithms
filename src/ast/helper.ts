@@ -1,3 +1,5 @@
+import {AST} from './index';
+
 export let Id = (name?:string):Identifier => {return {type:"Identifier", name:name||AST.genSymbol()}}
 export let Literal = (value:any):Literal =>  {return {type:"Literal",    value }};
 export let Block = (...body):BlockStatement => {return {type:"BlockStatement", body }};
@@ -29,3 +31,25 @@ export let TryCatchFinally = (t:ASTNode[], c:ASTNode[] = [], f:ASTNode[] = []):T
     finalizer : Block(...f)
   };
 }
+export let Func = (id:Identifier, params:Pattern[], body:ASTNode[], generator:boolean = false):FunctionDeclaration => {
+  return {
+    type : "FunctionDeclaration", 
+    id,
+    params, 
+    body : Block(...body), 
+    generator, 
+    defaults:[], 
+    expression:false
+  };
+} 
+export let IfThen = (test:Expression, body:ASTNode[], elseBody:ASTNode[] = []):IfStatement => {
+  let res:any = {
+    type : "IfStatement",
+    test,
+    consequent : Block(...body)
+  }
+  if (elseBody) {
+    res['alternate']  = Block(...elseBody)
+  };
+  return res as IfStatement;
+} 
