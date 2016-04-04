@@ -1,5 +1,21 @@
 import {AST} from '../ast/index';
+import {
+  Id, 
+  Yield, 
+  Call, 
+  Literal, 
+  Block, 
+  Vars, 
+  TryCatchFinally, 
+  Expr, 
+  Return, 
+  Throw
+} from '../ast/helper';
 import * as _ from "lodash";
+
+function emit(ident:Identifier, action:string, val?:any):YieldExpression {
+  return Yield(Call(Id("_emit"), ident, Literal(action), val));
+}
 
 export class Analyzer {
   static templates = {
@@ -11,30 +27,12 @@ export class Analyzer {
       return out;
     }
   };
-    
+       
   static yieldVisitor() {
     let name = null;
     let nameSym = AST.genSymbol();
-    let frameIdAST = {
-      type : "Identifier",
-      name   : AST.genSymbol()
-    }
-    
-    function emit(action:string, val?:any) {
-      return {
-        type : "YieldExpression",
-        argument : {
-          type : "CallExpression",
-          callee : { name : "__emit", type : "Identifier" },
-          arguments : [
-            frameIdAST, 
-            { type : "Literal", value : action}, 
-            val
-          ].filter(x => !!x)
-        }
-      }
-    }
-    
+    let frameId = Id()
+       
     return AST.visitor({
       FunctionDeclaration : function(node:FunctionDeclaration) {
         if (name !== null || !node.id || !node.id.name) return;
@@ -43,72 +41,34 @@ export class Analyzer {
         node.generator = true;
         node.id.name = nameSym;
 
-        let body = (node.body as BlockStatement).body;
-        body.unshift({
-          type : "VariableDeclaration",
-          kind : "var",
-          declarations : [{ 
-            type : "VariableDeclarator", 
-            id : frameIdAST, 
-            init : {
-              type : "CallExpression",
-              callee : {
-                type : "Identifier",
-                name : "genSymbol"
-              },
-              arguments : []
-            }
-          }]
-        }, emit("enter", { type : "Identifier", name : "arguments"}));
-        node.body = {
-          type : "BlockStatement",
-          body : [{
-            type : "TryStatement",
-            block :  node.body,
-            finalizer : {
-              type : "BlockStatement",
-              body : [emit("leave")]
-            }
-          }]
-        }         
+        node.body = Block(TryCatchFinally(
+          [
+            Vars(frameId, Call(Id("genSymbol"))), 
+            emit(frameId, "enter", Id("arguments")),
+            ...((node.body as BlockStatement).body as ASTNode[])
+          ],
+          [
+            emit(frameId, "error", Id("e")),
+            Throw(Id('e'))
+          ],
+          [emit(frameId, "leave")]
+        ))
         return node;
       },
       CallExpression : function(node:CallExpression) {
         let callee = node.callee as Identifier;
         if (callee.name === name) {
           callee.name = nameSym;
-          return  {
-            type : "YieldExpression",
-            delegate : true,
-            argument : node
-          };
+          return  Yield(node, true);
         }
       },
       ReturnStatement: function(node:ReturnStatement) {
-        let retAST = { name : AST.genSymbol(), type : "Identifier" };              
-        return {
-          type : "BlockStatement",
-          body : [
-            {
-              type : "VariableDeclaration",
-              kind : "var",
-              declarations : [{ 
-                type : "VariableDeclarator", 
-                id : retAST, 
-                init : node.argument 
-              }],            
-            },
-            {
-              type : "ExpressionStatement",
-              expression : emit("return", retAST)
-            },
-            {
-              type : "ReturnStatement",
-              argument : retAST,
-              visited : true
-            }
-          ]
-        };
+        let retId = Id();              
+        return Block(
+          Vars(retId, node.argument),
+          Expr(emit(frameId, "return", retId)),
+          _.extend(Return(retId), { visited : true })
+        );
       }
     });
   }
