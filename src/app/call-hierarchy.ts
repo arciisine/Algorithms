@@ -1,6 +1,7 @@
 import {mergeSort,merge} from '../data/index';
 import {Analyzer} from '../analyzer/index';
 import * as _ from "lodash";
+import * as d3 from "d3";
 
 type Node = {
   updated?:number,
@@ -29,7 +30,6 @@ export class CallHierarchy {
     if (!this.iterator) return;
     let next = this.iterator.next();    
     if (next.done) {
-      this.root.updated = new Date().getTime();
       return;
     }
     
@@ -58,6 +58,8 @@ export class CallHierarchy {
       case 'enter': this.stack.push(res.frameId); break;
       case 'leave': this.stack.pop(); break;
     }    
+
+    this.root.updated = new Date().getTime();
     
     if (res.action === 'return') {
       node.done = true; 
@@ -68,7 +70,7 @@ export class CallHierarchy {
 export let Directive = ['$timeout', function($timeout) {
   let margin = 20;
   
-  function update(root, svg, tree, diagonal) {
+  function update(root:any, svg:d3.Selection<any>, tree:d3.layout.Tree<any>, diagonal:d3.svg.Diagonal<d3.layout.tree.Link<any>, d3.layout.tree.Node>) {
     // Compute the new tree layout.
     let nodes = tree.nodes(root).reverse();
     root.x = 500;
@@ -103,14 +105,25 @@ export let Directive = ['$timeout', function($timeout) {
       .text(d => d.name)
       .style("fill-opacity", 1);
 
+    node.attr("transform", d => `translate(${d.x},${d.y})`);
+    
+    node.select("text")
+      .attr("y", d =>  d.children ? -13 : 13)
+      .attr("dx", ".35em")
+
     // Declare the links
     let link = svg.selectAll("path.link")
       .data(links, d => d.target.id);
 
     // Enter the links.
-    link.enter().insert("path", "g")
-      .attr("class", "link")
-      .attr("d", d => diagonal(d));
+    link
+      .enter().insert("path", "g")
+        .attr("class", "link")
+        .attr("d", d => diagonal(d))
+        
+    link.attr("d", d => diagonal(d))        
+        
+    //link.exit()
   }
   
   return {
