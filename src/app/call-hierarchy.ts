@@ -28,7 +28,10 @@ export class CallHierarchy {
   iterate() {
     if (!this.iterator) return;
     let next = this.iterator.next();    
-    if (next.done) return;
+    if (next.done) {
+      this.root.updated = new Date().getTime();
+      return;
+    }
     
     let res = next.value;    
 
@@ -59,8 +62,6 @@ export class CallHierarchy {
     if (res.action === 'return') {
       node.done = true; 
     }
-    
-    this.root.updated = new Date().getTime();
   }
 }
 
