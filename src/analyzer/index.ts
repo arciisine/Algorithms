@@ -46,12 +46,15 @@ export class Analyzer {
             TryCatchFinally(
               [
                 Vars(frameId, Call(Id("genSymbol"))), 
-                emit(frameId, "invoke", Id("arguments")),
+                emit(frameId, "enter", Id("arguments")),
                 ...((node.body as BlockStatement).body as ASTNode[])
               ],
               [
                 emit(frameId, "error", Id("e")),
                 Throw(Id('e'))
+              ],
+              [
+                emit(frameId, "leave"),
               ]
             )
           ],
@@ -76,9 +79,9 @@ export class Analyzer {
     });
   }
 
-  static rewrite(fn:Function, globals:any) {
+  static rewrite(fn:Function, globals:any):GeneratorFunction {
     return AST.rewrite(fn, 
       Analyzer.yieldVisitor(), 
-      _.extend(globals || {}, Analyzer.templates));
+      _.extend(globals || {}, Analyzer.templates)) as GeneratorFunction;
   }
 }

@@ -1,4 +1,8 @@
+import {CallHierarchy, Directive} from './call-hierarchy';
+
 export default function init() {
+  console.log("Initializing");
+  
   angular
     .module("Algorithm", ['ngMaterial','ui.ace'])
     .config(function($mdThemingProvider) {
@@ -6,12 +10,9 @@ export default function init() {
         .primaryPalette('blue');
       $mdThemingProvider.setDefaultTheme('altTheme');  
     })
-    .controller("Test", function() {
-      
-    })
+    .controller("CallHierarchy", CallHierarchy)
+    .directive("callHierarchy", Directive)
   
   
-  document.onload = function() {
-    angular.bootstrap(document.body, ['Algorithm'])
-  }
+    angular.bootstrap(document, ['Algorithm'])
 }

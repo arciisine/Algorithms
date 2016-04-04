@@ -42,19 +42,16 @@ export class AST {
   
   static parse(fn:Function):FunctionExpression {
     let ast = <FunctionExpression>(esprima.parse(fn) as BlockStatement).body[0];
-    console.log(ast); 
     return ast;
   }
   
   static compile(node:FunctionExpression, globals:any):Function {
-    console.log(node);
     let src = `(function() {
       var id_ = new Date().getTime();
       var genSymbol = ${AST.genSymbol.toString()};
       ${Object.keys(globals || {}).map(k => `var ${k} = ${globals[k].toString()}`).join('\n')} 
       return ${escodegen.generate(node)}; 
     })()`;
-    console.log(src);
     return eval(src);
   }
 

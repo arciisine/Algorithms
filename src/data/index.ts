@@ -1,7 +1,4 @@
-import {Analyzer} from '../analyzer/index';
-
-var tree = { value : 10, left : { value : 5 }, right : { value : 11 }};
-function sum(node) {
+export function sum(node) {
     var ret = 0;
     if (node) {
         ret = node.value + sum(node.left) + sum(node.right);
@@ -9,8 +6,9 @@ function sum(node) {
     return ret;
 }
 
-var arr = [34, 203, 3, 746, 200, 984, 198, 764, 9];
-function mergeSort(arr)
+sum['sample'] = { value : 10, left : { value : 5 }, right : { value : 11 }};
+
+export function mergeSort(arr)
 {
     if (arr.length < 2)
         return arr;
@@ -21,8 +19,10 @@ function mergeSort(arr)
  
     return merge(mergeSort(left), mergeSort(right));
 }
+
+mergeSort['sample'] = [34, 203, 3, 746, 200, 984, 198, 764, 9];
  
-function merge(left, right)
+export function merge(left, right)
 {
     var result = [];
  
@@ -42,5 +42,3 @@ function merge(left, right)
  
     return result;
 }
-console.log("Starting up")
-window['$r'] = Analyzer.rewrite(mergeSort, { merge })

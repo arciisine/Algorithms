@@ -1,4 +1,3 @@
+import run from "./app/index";
 
-import "./app/index";
-import "./data/index";
-
+run()
