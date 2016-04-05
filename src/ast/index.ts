@@ -77,6 +77,7 @@ export class AST {
   static rewrite(fn:Function, visitor:Visitor, globals:any) {
     let ast = AST.parse(fn);   
     ast = <FunctionExpression>AST.visit(visitor, ast);
+    console.log(ast);
     return AST.compile(ast, globals);
   }
 }

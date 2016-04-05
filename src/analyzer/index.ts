@@ -1,9 +1,10 @@
 import {AST} from '../ast/index';
 import {
   Id, 
+  IfThen,
   Yield, 
   Call, 
-  Literal, 
+  Literal,
   Block, 
   Vars, 
   TryCatchFinally, 
@@ -26,13 +27,21 @@ export class Analyzer {
         out['value'] = val;
       }
       return out;
-    }
+    },
+    __cacheKey : function(args) {
+      return Array.prototype.slice.call(args, 0).map(function(x) { return ""+x; }).join('||');
+    },
+    __getCache : function(key, p:string) { return (this[p] = this[p] || {})[key]; },
+    __setCache : function(key, p:string, ret) { this[p][key] = ret; }    
   };
        
-  static yieldVisitor() {
+  static yieldVisitor(memoize:boolean = false) {
     let name = null;
     let funcId = Id()
     let frameId = Id()
+    let cacheId = Id()
+    let cacheKeyId = Id()
+    let cacheResId = Id()
        
     return AST.visitor({
       FunctionDeclaration : function(node:FunctionDeclaration) {
@@ -42,9 +51,15 @@ export class Analyzer {
         return Func(
           funcId,
           node.params,
-          [
+          [            
             TryCatchFinally(
               [
+                Vars(
+                  cacheKeyId, Call(Id("__cacheKey"), [Id("arguments")]),
+                  cacheResId, Call(Id("__getCache"), [cacheKeyId, cacheId])
+                ),
+                memoize ? IfThen({type:"BinaryExpression", operator: "!==", left : cacheResId, right : Id("undefined")}, 
+                  [Return(cacheResId)]) : null,
                 Vars(frameId, Call(Id("genSymbol"))), 
                 emit(frameId, "enter", Id("arguments")),
                 ...((node.body as BlockStatement).body as ASTNode[])
@@ -73,15 +88,16 @@ export class Analyzer {
         return Block(
           Vars(retId, node.argument),
           emit(frameId, "return", retId),
+          memoize ? Call(Id("__setCache"), [cacheKeyId, cacheId, retId]) : null,
           _.extend(Return(retId), { visited : true })
         );
       }
     });
   }
 
-  static rewrite(fn:Function, globals:any = {}):GeneratorFunction {
+  static rewrite(fn:Function, globals:any = {}, memoize:boolean = false):GeneratorFunction {
     return AST.rewrite(fn, 
-      Analyzer.yieldVisitor(), 
+      Analyzer.yieldVisitor(memoize), 
       _.extend(globals || {}, Analyzer.templates)) as GeneratorFunction;
   }
 }

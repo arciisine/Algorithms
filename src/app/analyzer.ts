@@ -1,4 +1,4 @@
-import {sum, merge, mergeSort} from '../data/index';
+import {sum, mergeSort, cutRod} from '../data/index';
 import {Analyzer} from '../analyzer/index';
 
 type Node = {
@@ -17,20 +17,25 @@ type Node = {
 export class AnalyzerController {
   private iterator:Iterator<{frameId:string, action:string, value:any}>;
   private visited:{[key:string]:Node} = {};
-  private id:number = 1;
+  private id:number = 1;  
   public stack:string[] = [];
   public root:Node;
   public activeFrameId:string;
+  
+  private globals:any;
   public source:string;
   public input:string;
+  public memoize:boolean = true;
   
   constructor() {
-    this.source = sum.toString()
-    this.input = JSON.stringify(sum['sample']);
+    let fn = cutRod;
+    this.source = fn.toString()
+    this.input = JSON.stringify(fn['sample']);
+    this.globals = fn['globals'];
   }
   
   render() {
-    this.iterator = Analyzer.rewrite(this.source as any)(JSON.parse(this.input));
+    this.iterator = Analyzer.rewrite(this.source as any, this.globals, this.memoize)(...JSON.parse(this.input));
   }  
   
   iterate() {
@@ -71,7 +76,7 @@ export class AnalyzerController {
         
     switch (res.action) {
       case 'enter': this.stack.push(res.frameId); break;
-      case 'leave': this.stack.pop(); break;
+      case 'leave': this.stack.pop(); this.iterate(); break;
       case 'return':
         node.ret = _.clone(res.value);
         node.done = true;

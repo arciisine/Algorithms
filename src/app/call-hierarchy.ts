@@ -45,6 +45,10 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
       .text(d => d.done ? d.ret : d.args)
       .attr("text-anchor", d => d.children ? "end" : "start")
       .style("fill-opacity", 1);
+      
+    node.exit()
+      .transition().duration(delay)
+      .remove()
 
     // Declare the links
     let link = svg.selectAll("path.link")
@@ -67,7 +71,10 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
       .transition().duration(delay)    
       .attr("d", d => diagonal(d))        
         
-    //link.exit()
+    link.exit()
+      .transition().duration(delay)
+      .remove();
+      
     nodes.forEach(d => {
 	    d.x0 = d.x;
 	    d.y0 = d.y;
@@ -88,7 +95,7 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
               
         let tree = d3.layout.tree()
           .size([w-margin*2, w-margin*2])
-          .nodeSize([100,60]);
+          .nodeSize([50,50]);
                     
         let svg = d3.select(el[0].tagName.toLowerCase())
           .append("svg")
