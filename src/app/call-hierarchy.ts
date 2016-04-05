@@ -8,7 +8,7 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
   
   function update(root:any, frameId:string, svg:d3.Selection<any>, tree:d3.layout.Tree<any>) {
     // Compute the new tree layout.
-    let nodes = tree.nodes(root).reverse();
+    let nodes = root ? tree.nodes(root).reverse() : [];
     
     let links = tree.links(nodes);
 
@@ -104,10 +104,8 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
             .append("g")
               .attr("transform", `translate(${margin + w/2},${margin})`);
         
-        scope.$watch('root.updated', function(r) {
-          if (r && scope.root) {
-            update(scope.root, scope.frameId, svg, tree);
-          }
+        scope.$watch('root + "||" + root.updated', function(r) {
+          update(scope.root, scope.frameId, svg, tree);
         });
       }, 100);
     }

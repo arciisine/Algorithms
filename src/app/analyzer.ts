@@ -26,6 +26,7 @@ export class AnalyzerController {
   public source:string;
   public input:string;
   public memoize:boolean = true;
+  public state:string;
   
   constructor() {
     let fn = cutRod;
@@ -36,7 +37,13 @@ export class AnalyzerController {
   
   render() {
     this.iterator = Analyzer.rewrite(this.source as any, this.globals, this.memoize)(...JSON.parse(this.input));
+    this.state = 'running';
   }  
+  
+  stop() {
+    delete this.state;
+    delete this.root;
+  }
   
   iterate() {
     if (!this.iterator) return;
@@ -44,6 +51,7 @@ export class AnalyzerController {
     if (next.done) {
       this.root.done = true;
       this.root.updated = new Date().getTime();
+      this.state = 'finished';
       return;
     }
     

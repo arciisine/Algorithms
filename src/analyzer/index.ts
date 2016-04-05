@@ -31,15 +31,15 @@ export class Analyzer {
     __cacheKey : function(args) {
       return Array.prototype.slice.call(args, 0).map(function(x) { return ""+x; }).join('||');
     },
-    __getCache : function(key, p:string) { return (this[p] = this[p] || {})[key]; },
-    __setCache : function(key, p:string, ret) { this[p][key] = ret; }    
+    __getCache : function(ctx, key, p:string) { return (ctx[p] || (ctx[p] = {}))[key]; },
+    __setCache : function(ctx, key, p:string, ret) { ctx[p][key] = ret; }    
   };
        
   static yieldVisitor(memoize:boolean = false) {
     let name = null;
     let funcId = Id()
     let frameId = Id()
-    let cacheId = Id()
+    let cacheId = Literal(Id().name)
     let cacheKeyId = Id()
     let cacheResId = Id()
        
@@ -54,14 +54,17 @@ export class Analyzer {
           [            
             TryCatchFinally(
               [
-                Vars(
-                  cacheKeyId, Call(Id("__cacheKey"), [Id("arguments")]),
-                  cacheResId, Call(Id("__getCache"), [cacheKeyId, cacheId])
-                ),
-                memoize ? IfThen({type:"BinaryExpression", operator: "!==", left : cacheResId, right : Id("undefined")}, 
-                  [Return(cacheResId)]) : null,
                 Vars(frameId, Call(Id("genSymbol"))), 
                 emit(frameId, "enter", Id("arguments")),
+                Vars(
+                  cacheKeyId, Call(Id("__cacheKey"), Id("arguments")),
+                  cacheResId, Call(Id("__getCache"), funcId, cacheKeyId, cacheId)
+                ),                
+                memoize ? IfThen({type:"BinaryExpression", operator: "!==", left : cacheResId, right : Id("undefined")}, 
+                  [
+                    emit(frameId, "return", cacheResId),
+                    _.extend(Return(cacheResId), { visited : true })
+                  ]) : null,
                 ...((node.body as BlockStatement).body as ASTNode[])
               ],
               [
@@ -87,8 +90,8 @@ export class Analyzer {
         let retId = Id();              
         return Block(
           Vars(retId, node.argument),
+          memoize ? Call(Id("__setCache"), funcId, cacheKeyId, cacheId, retId) : null,
           emit(frameId, "return", retId),
-          memoize ? Call(Id("__setCache"), [cacheKeyId, cacheId, retId]) : null,
           _.extend(Return(retId), { visited : true })
         );
       }

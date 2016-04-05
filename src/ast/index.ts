@@ -52,6 +52,7 @@ export class AST {
       ${Object.keys(globals || {}).map(k => `var ${k} = ${globals[k].toString()}`).join('\n')} 
       return ${escodegen.generate(node)}; 
     })()`;
+    console.log(src);
     return eval(src);
   }
 
@@ -77,7 +78,6 @@ export class AST {
   static rewrite(fn:Function, visitor:Visitor, globals:any) {
     let ast = AST.parse(fn);   
     ast = <FunctionExpression>AST.visit(visitor, ast);
-    console.log(ast);
     return AST.compile(ast, globals);
   }
 }
