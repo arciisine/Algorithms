@@ -103,6 +103,11 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
             .attr("height", h)
             .append("g")
               .attr("transform", `translate(${margin + w/2},${margin})`);
+              
+        let zoom = d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", () => 
+          svg.attr("transform", `translate(${d3.event['translate']}) scale(${d3.event['scale']})`))
+          
+        svg.call(zoom);
         
         scope.$watch('root + "||" + root.updated', function(r) {
           update(scope.root, scope.frameId, svg, tree);

@@ -28,9 +28,7 @@ export class Analyzer {
       }
       return out;
     },
-    __cacheKey : function(args) {
-      return Array.prototype.slice.call(args, 0).map(function(x) { return ""+x; }).join('||');
-    },
+    __cacheKey : function(args) { return JSON.stringify(Array.prototype.slice.call(args, 0)); },
     __getCache : function(ctx, key, p:string) { return (ctx[p] || (ctx[p] = {}))[key]; },
     __setCache : function(ctx, key, p:string, ret) { ctx[p][key] = ret; }    
   };
