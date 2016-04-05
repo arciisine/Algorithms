@@ -79,7 +79,7 @@ export class Analyzer {
     });
   }
 
-  static rewrite(fn:Function, globals:any):GeneratorFunction {
+  static rewrite(fn:Function, globals:any = {}):GeneratorFunction {
     return AST.rewrite(fn, 
       Analyzer.yieldVisitor(), 
       _.extend(globals || {}, Analyzer.templates)) as GeneratorFunction;

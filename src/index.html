@@ -29,15 +29,15 @@
           d3 : '//cdnjs.cloudflare.com/ajax/libs/d3/3.5.16/d3.min.js'
         },
         packages : {
-          'src' : {
+          './' : {
             defaultExtension : "ts"
           } 
         }
       })  
-      System.import('src/index.ts');
+      System.import('./index.ts');
     </script>
   </head>
   <body ng-cloak>
-    <ng-include src="'./src/app/analyzer.html'"></ng-include>
+    <ng-include src="'./app/analyzer.html'"></ng-include>
   </body>
 </html>

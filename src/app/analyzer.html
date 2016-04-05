@@ -1,5 +1,13 @@
-<div ng-controller="AnalyzerController as ctrl">
-  <button ng-click="ctrl.render()">Start</button>
-  <button ng-click="ctrl.iterate()">Next</button>
-  <call-hierarchy root="ctrl.root" frame-id="ctrl.activeFrameId"></call-hierarchy>
+<div ng-controller="AnalyzerController as ctrl"  layout="column">
+  <div flex="50">
+    <button ng-click="ctrl.render()">Start</button>
+    <button ng-click="ctrl.iterate()">Next</button>
+      <div ui-ace="{
+        useWrapMode : true,
+        mode: 'javascript'
+      }" ng-model="ctrl.method" required></div>
+  </div>
+  <div flex="50">
+    <call-hierarchy root="ctrl.root" frame-id="ctrl.activeFrameId"></call-hierarchy>
+  </div>
 </div>

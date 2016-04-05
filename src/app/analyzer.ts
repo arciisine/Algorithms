@@ -1,4 +1,4 @@
-import {mergeSort,merge} from '../data/index';
+import {sum} from '../data/index';
 import {Analyzer} from '../analyzer/index';
 
 type Node = {
@@ -25,13 +25,15 @@ export class AnalyzerController {
   constructor() {}
   
   render() {
-    this.iterator = Analyzer.rewrite(mergeSort, {merge})(mergeSort['sample']);
+    this.iterator = Analyzer.rewrite(sum)(sum['sample']);
   }  
   
   iterate() {
     if (!this.iterator) return;
     let next = this.iterator.next();    
     if (next.done) {
+      this.root.done = true;
+      this.root.updated = new Date().getTime();
       return;
     }
     
@@ -42,7 +44,7 @@ export class AnalyzerController {
       node = this.visited[res.frameId] = {
         name : res.frameId, 
         frameId : res.frameId,
-        args : Array.prototype.slice.call(res.value, 0).map(x => `${x}`).join(','),
+        args : JSON.stringify(_.clone(res.value)),
         id : ++this.id,
         children : [],
         done : false
