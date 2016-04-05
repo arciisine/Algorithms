@@ -1,5 +1,5 @@
 <div ng-controller="AnalyzerController as ctrl">
   <button ng-click="ctrl.render()">Start</button>
   <button ng-click="ctrl.iterate()">Next</button>
-  <call-hierarchy root="ctrl.root"></call-hierarchy>
+  <call-hierarchy root="ctrl.root" frame-id="ctrl.activeFrameId"></call-hierarchy>
 </div>

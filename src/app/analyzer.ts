@@ -5,6 +5,9 @@ type Node = {
   updated?:number,
   id:number,
   name : string,
+  frameId : string,
+  args? : any,
+  ret? : any,
   parent? : Node,
   children?: Node[],
   _children?:Node[],
@@ -17,6 +20,7 @@ export class AnalyzerController {
   private id:number = 1;
   public stack:string[] = [];
   public root:Node;
+  public activeFrameId:string;
   
   constructor() {}
   
@@ -35,8 +39,10 @@ export class AnalyzerController {
 
     let node:Node = this.visited[res.frameId];
     if (!node) {
-      node = this.visited[res.frameId] = { 
-        name : Array.prototype.slice.call(res.value, 0).map(x => `${x}`).join(','),
+      node = this.visited[res.frameId] = {
+        name : res.frameId, 
+        frameId : res.frameId,
+        args : Array.prototype.slice.call(res.value, 0).map(x => `${x}`).join(','),
         id : ++this.id,
         children : [],
         done : false
@@ -53,16 +59,18 @@ export class AnalyzerController {
         this.root = node;
       }
     }
+    
+    this.activeFrameId = res.frameId;
         
     switch (res.action) {
       case 'enter': this.stack.push(res.frameId); break;
       case 'leave': this.stack.pop(); break;
+      case 'return':
+        node.ret = _.clone(res.value);
+        node.done = true;
+        break;
     }    
 
-    this.root.updated = new Date().getTime();
-    
-    if (res.action === 'return') {
-      node.done = true; 
-    }
+    this.root.updated = new Date().getTime();    
   }
 }

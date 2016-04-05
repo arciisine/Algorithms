@@ -3,13 +3,14 @@ import * as d3 from "d3";
 
 export let CallHierarchyDirective = ['$timeout', function($timeout) {
   let margin = 20;
+  let delay = 500;
+  let diagonal = d3.svg.diagonal()
   
-  function update(root:any, svg:d3.Selection<any>, tree:d3.layout.Tree<any>, diagonal:d3.svg.Diagonal<d3.layout.tree.Link<any>, d3.layout.tree.Node>) {
+  function update(root:any, frameId:string, svg:d3.Selection<any>, tree:d3.layout.Tree<any>) {
     // Compute the new tree layout.
     let nodes = tree.nodes(root).reverse();
     
     let links = tree.links(nodes);
-
 
     // Declare the nodesâ€¦
     let node = svg.selectAll("g.node").data(nodes, d => d.id);
@@ -19,33 +20,31 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
       .attr("class", "node")
       
     nodeEnter
-      .attr("transform", d => {
-        d = d.parent || d;
-        return `translate(${d.x0},${d.y0})` 
-      })
-      .transition().duration(1000)
-      .attr("transform", d => `translate(${d.x},${d.y})`);
+      .attr("transform", d => `translate(${(d.parent || d).x0},${(d.parent || d).y0})`)
 
-    nodeEnter.append("circle")
-      .attr("r", 3)
-      .transition().duration(1000)
-      .attr("r", 10)      
-      .style("fill", "#fff");
-
-    nodeEnter.append("text")
-      .attr("y", 20)
-      .attr("dx", ".5em")
-      .attr("text-anchor", d => d.children ? "end" : "start")
-      .text(d => d.name)
-      .style("fill-opacity", 1);
+    nodeEnter
+      .append("circle").attr("r", 3);
+            
+    nodeEnter
+      .append("text");
 
     node
-      .transition().duration(1000)
+      .select('circle')
+      .transition().duration(delay)
+      .attr("r", 10)
+      .style("fill-opacity", d => d.frameId === frameId ? 1 : .7)          
+      .style("fill", d => d.frameId === frameId ? "#008" : (d.done ?  "#080" : "#800"));
+        
+    node
+      .transition().duration(delay)
       .attr("transform", d => `translate(${d.x},${d.y})`)
       
     node.select("text")
       .attr("y", 20)
       .attr("dx", ".5em")
+      .text(d => d.done ? d.ret : d.args)
+      .attr("text-anchor", d => d.children ? "end" : "start")
+      .style("fill-opacity", 1);
 
     // Declare the links
     let link = svg.selectAll("path.link")
@@ -61,16 +60,15 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
         var o = {x: d.source.x0, y: d.source.y0};
         return diagonal({source:o, target:o})
       })
-      .transition().duration(1000)          
+      .transition().duration(delay)          
       .attr("d", d => diagonal(d))
         
     link
-      .transition().duration(1000)    
+      .transition().duration(delay)    
       .attr("d", d => diagonal(d))        
         
     //link.exit()
     nodes.forEach(d => {
-      console.log(d);
 	    d.x0 = d.x;
 	    d.y0 = d.y;
     });
@@ -80,6 +78,7 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
     restrict : 'E',
     scope : {
       root : '=',
+      frameId : '=',
     },
     link : function(scope, el:ng.IAugmentedJQuery, attrs) {
       
@@ -90,10 +89,7 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
         let tree = d3.layout.tree()
           .size([w-margin*2, w-margin*2])
           .nodeSize([100,60]);
-          
-        let diagonal = d3.svg.diagonal()
-          .projection(d => [d.x, d.y]);
-          
+                    
         let svg = d3.select(el[0].tagName.toLowerCase())
           .append("svg")
             .attr("width", w)
@@ -101,11 +97,9 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
             .append("g")
               .attr("transform", `translate(${margin + w/2},${margin})`);
         
-        let first = true;
-        
         scope.$watch('root.updated', function(r) {
           if (r && scope.root) {
-            update(scope.root, svg, tree, diagonal);
+            update(scope.root, scope.frameId, svg, tree);
           }
         });
       }, 100);
