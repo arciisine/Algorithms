@@ -1,4 +1,5 @@
-import {CallHierarchy, Directive} from './call-hierarchy';
+import {AnalyzerController} from './analyzer';
+import {CallHierarchyDirective} from './call-hierarchy';
 
 export default function init() {
   console.log("Initializing");
@@ -10,8 +11,8 @@ export default function init() {
         .primaryPalette('blue');
       $mdThemingProvider.setDefaultTheme('altTheme');  
     })
-    .controller("CallHierarchy", CallHierarchy)
-    .directive("callHierarchy", Directive)
+    .controller("AnalyzerController", AnalyzerController)
+    .directive("callHierarchy", CallHierarchyDirective)
   
   
     angular.bootstrap(document, ['Algorithm'])
