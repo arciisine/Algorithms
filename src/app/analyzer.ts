@@ -1,4 +1,4 @@
-import {sum} from '../data/index';
+import {sum, merge, mergeSort} from '../data/index';
 import {Analyzer} from '../analyzer/index';
 
 type Node = {
@@ -21,11 +21,16 @@ export class AnalyzerController {
   public stack:string[] = [];
   public root:Node;
   public activeFrameId:string;
+  public source:string;
+  public input:string;
   
-  constructor() {}
+  constructor() {
+    this.source = sum.toString()
+    this.input = JSON.stringify(sum['sample']);
+  }
   
   render() {
-    this.iterator = Analyzer.rewrite(sum)(sum['sample']);
+    this.iterator = Analyzer.rewrite(this.source as any)(JSON.parse(this.input));
   }  
   
   iterate() {

@@ -4,7 +4,7 @@ html, body {
   background-color: #eee;
 }
 div[ui-ace] {
-  min-height: 300px;
+  min-height: 200px;
 }
 
 
