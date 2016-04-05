@@ -4,14 +4,14 @@ import {Analyzer} from '../analyzer/index';
 type Node = {
   updated?:number,
   id:number,
-  position:number,
   name : string,
-  parent? : string,
+  parent? : Node,
   children?: Node[],
+  _children?:Node[],
   done : boolean
 }
 
-export class AnalzyerController {
+export class AnalyzerController {
   private iterator:Iterator<{frameId:string, action:string, value:any}>;
   private visited:{[key:string]:Node} = {};
   private id:number = 1;
@@ -36,17 +36,19 @@ export class AnalzyerController {
     let node:Node = this.visited[res.frameId];
     if (!node) {
       node = this.visited[res.frameId] = { 
-        name : res.frameId,
-        position : 1,
+        name : Array.prototype.slice.call(res.value, 0).map(x => `${x}`).join(','),
         id : ++this.id,
         children : [],
         done : false
       };
+      
+      node._children = node.children;
+      
       if (this.stack.length) {
-        node.parent = this.stack[this.stack.length-1];
-        let children = this.visited[node.parent].children;
+        node.parent = this.visited[this.stack[this.stack.length-1]];
+        let children = node.parent._children;
         children.push(node);
-        node.position = children.length + 1;
+        node.parent.children =  children;
       } else {
         this.root = node;
       }
