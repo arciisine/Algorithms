@@ -2,10 +2,12 @@
   <div flex="33">
     <h3 class="md-title">
       Source
-      <button ng-if="!ctrl.state" class="md-button md-primary md-raised" ng-click="ctrl.render()">Start</button>
-      <button ng-if="ctrl.state == 'running'" class="md-button md-primary md-raised" ng-click="ctrl.iterate()">Next</button>
-      <button ng-if="ctrl.state == 'running'" class="md-button md-primary md-raised" ng-click="ctrl.stop()">Stop</button>
-       <md-checkbox ng-model="ctrl.memoize" ng-disabled="ctrl.state === 'running'">Memoize?</md-checkbox>
+      <button ng-if="ctrl.state == 'finished'" class="md-button md-primary md-raised" ng-click="ctrl.render()">Start</button>
+      <button ng-if="ctrl.state == 'stepping'" class="md-button md-primary md-raised" ng-click="ctrl.play()">Play</button>
+      <button ng-if="ctrl.state == 'playing'" class="md-button md-primary md-raised" ng-click="ctrl.pause()">Pause</button>
+      <button ng-if="ctrl.state == 'stepping'" class="md-button md-primary md-raised" ng-click="ctrl.step()">Step</button>
+      <button ng-if="ctrl.state != 'finished'" class="md-button md-primary md-raised" ng-click="ctrl.stop()">Stop</button>
+       <md-checkbox ng-model="ctrl.memoize" ng-disabled="ctrl.state != 'finished'">Memoize?</md-checkbox>
     </h3>
     <div ui-ace="{
       useWrapMode : true,

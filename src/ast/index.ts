@@ -22,7 +22,7 @@ export class AST {
     [
       'body', 'declarations', 'argument', 'arguments', 'alternate', 'consequent',
       'left', 'right', 'init', 'expression', 'callee', 'elements', 
-      'handlers', 'handler', 'block', 'finalizer', 'test'
+      'handlers', 'handler', 'block', 'finalizer', 'test', 'object'
     ]
       .filter(function(p) { return !!node[p]; })
       .forEach(function(p) { 

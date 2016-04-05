@@ -56,3 +56,46 @@ export function cutRod(prices, n) {
 }
 
 cutRod['sample'] = [[1, 5, 8, 9, 10, 17, 17, 20], 8]
+
+
+export function quicksort(arr) {
+  //if array is empty
+  if (arr.length === 0) {
+    return [];
+  }
+  
+  var left = [];
+  var right = [];
+  var pivot = arr[0];
+  //go through each element in array
+  for (var i = 1; i < arr.length; i++) {
+      if (arr[i] < pivot) {
+         left.push(arr[i]);
+      } else {
+         right.push(arr[i]);
+      }
+  }
+  return quicksort(left).concat(pivot, quicksort(right));
+}
+
+quicksort['sample'] = [[34, 203, 3, 746, 200, 984, 198, 764, 9]];
+
+export function activitySelector(a, k) {
+  var m = k +1;
+  var n = a.length-1;
+  while (m <= n && a[m][0] < a[k][1]) m+=1;
+  return m <= n ? [m].concat(activitySelector(a, m)) : [];
+}
+activitySelector['sample'] = [[
+  [1,4],
+  [3,5],
+  [0,6],
+  [5,7],
+  [3,9],
+  [5,9],
+  [6,10],
+  [8,11],
+  [8,12],
+  [2,14],
+  [12,16]
+], 0];

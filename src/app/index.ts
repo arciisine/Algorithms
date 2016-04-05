@@ -11,7 +11,7 @@ export default function init() {
         .primaryPalette('blue');
       $mdThemingProvider.setDefaultTheme('altTheme');  
     })
-    .controller("AnalyzerController", AnalyzerController)
+    .controller("AnalyzerController", AnalyzerController.$inject.slice(0).concat([AnalyzerController] as any))
     .directive("callHierarchy", CallHierarchyDirective)
   
   

@@ -1,4 +1,4 @@
-import {sum, mergeSort, cutRod} from '../data/index';
+import {sum, mergeSort, cutRod, quicksort,activitySelector} from '../data/index';
 import {Analyzer} from '../analyzer/index';
 
 type Node = {
@@ -15,9 +15,13 @@ type Node = {
 }
 
 export class AnalyzerController {
+  public static $inject = ['$timeout'];
+  
   private iterator:Iterator<{frameId:string, action:string, value:any}>;
   private visited:{[key:string]:Node};
   private id:number;  
+  private delay:number = 0;
+  
   public stack:string[];
   public root:Node;
   public activeFrameId:string;
@@ -26,9 +30,10 @@ export class AnalyzerController {
   public source:string;
   public input:string;
   public memoize:boolean = true;
-  public state:string;
+  public state:string = 'finished';
   
-  constructor() {
+  
+  constructor(private $timeout:ng.ITimeoutService) {
     let fn = cutRod;
     this.source = fn.toString()
     this.input = JSON.stringify(fn['sample']);
@@ -41,14 +46,27 @@ export class AnalyzerController {
     this.visited = {};
     this.id = 1;
     this.iterator = Analyzer.rewrite(this.source as any, this.globals, this.memoize)(...JSON.parse(this.input));
-    this.state = 'running';
+    this.state = 'stepping';
   }  
   
-  stop() {
-    delete this.state;
+  play() {
+    this.state = 'playing';
+    this.delay = 250;
+    this.step();
   }
   
-  iterate() {
+  pause() {
+    this.state = 'stepping';
+    this.delay = 0;
+  }
+  
+  stop() {
+    this.state = 'finished';
+    delete this.iterator;
+    this.delay = 0;
+  }
+  
+  step() {
     if (!this.iterator) return;
     let next = this.iterator.next();    
     if (next.done) {
@@ -88,13 +106,17 @@ export class AnalyzerController {
         
     switch (res.action) {
       case 'enter': this.stack.push(res.frameId); break;
-      case 'leave': this.stack.pop(); this.iterate(); break;
+      case 'leave': this.stack.pop(); this.step(); break;
       case 'return':
         node.ret = _.clone(res.value);
         node.done = true;
         break;
     }    
 
-    this.root.updated = new Date().getTime();    
+    this.root.updated = new Date().getTime();
+    
+    if (res.action !== 'leave' && this.delay) {
+      this.$timeout(() => this.step(), this.delay);
+    }    
   }
 }
