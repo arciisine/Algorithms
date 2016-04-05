@@ -16,9 +16,9 @@ type Node = {
 
 export class AnalyzerController {
   private iterator:Iterator<{frameId:string, action:string, value:any}>;
-  private visited:{[key:string]:Node} = {};
-  private id:number = 1;  
-  public stack:string[] = [];
+  private visited:{[key:string]:Node};
+  private id:number;  
+  public stack:string[];
   public root:Node;
   public activeFrameId:string;
   
@@ -36,13 +36,16 @@ export class AnalyzerController {
   }
   
   render() {
+    delete this.root;
+    this.stack = [];
+    this.visited = {};
+    this.id = 1;
     this.iterator = Analyzer.rewrite(this.source as any, this.globals, this.memoize)(...JSON.parse(this.input));
     this.state = 'running';
   }  
   
   stop() {
     delete this.state;
-    delete this.root;
   }
   
   iterate() {
@@ -51,7 +54,8 @@ export class AnalyzerController {
     if (next.done) {
       this.root.done = true;
       this.root.updated = new Date().getTime();
-      this.state = 'finished';
+      delete this.activeFrameId;
+      this.stop();
       return;
     }
     
