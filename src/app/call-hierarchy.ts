@@ -6,6 +6,31 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
   let delay = 500;
   let diagonal = d3.svg.diagonal()
   
+  function toString(o):String {
+    if (o === null || o === undefined) {
+      return "null";
+    } else if (Array.isArray(o)) {
+      if (o.length > 3) {
+        return `[${o.slice(0,2).map(toString)}, ..., ${toString(o[o.length-1])}]#${o.length}`
+      } else {
+        return `[${o}]`;
+      }
+    } else if (_.isPlainObject(o)) {
+      let keys = Object.keys(o);
+      if (keys.length > 3) {
+        
+      } else {
+        
+      }
+    } else if (typeof o === 'string') {
+      return `"${o}"`
+    } else if (typeof o === 'number' || typeof o === 'boolean') {
+      return `${o}`;
+    } else {
+      return '[Object]';
+    }  
+  }
+  
   function update(root:any, frameId:string, svg:d3.Selection<any>, tree:d3.layout.Tree<any>) {
     // Compute the new tree layout.
     let nodes = root ? tree.nodes(root).reverse() : [];
@@ -42,7 +67,7 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
     node.select("text")
       .attr("y", 20)
       .attr("dx", ".5em")
-      .text(d => d.done ? d.ret : d.args)
+      .text(d => d.done ? JSON.stringify(d.ret).substring(0,10) : d.args.map(x => JSON.stringify(x).substring(0, 10)+"..."))
       .attr("text-anchor", d => d.children ? "end" : "start")
       .style("fill-opacity", 1);
       

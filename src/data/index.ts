@@ -1,7 +1,7 @@
 type Fn = (...args:any[])=>any;
 type Algo = {fn:Fn, sample:any[]|(()=>any[]), globals?:{[key:string]:Fn}}
 
-function randomArray(size:number, min = 0, max = 1000) {
+function randomNumbers(size:number, min = 0, max = 1000) {
   let out = [];
   for (let i = 0; i < size; i++) {
     out.push(parseInt(`${Math.random() * (max-min)}`) + min)
@@ -56,7 +56,7 @@ let data:{[key:string]:Algo} = {
     
     return {
       fn : mergeSort,
-      sample :() => [randomArray(30)],
+      sample :() => [randomNumbers(30)],
       globals : { merge }
     };
   })(),
@@ -116,7 +116,7 @@ let data:{[key:string]:Algo} = {
     return {
       fn : quickSort,
       globals : { partition },
-      sample : () => [randomArray(30)]
+      sample : () => [randomNumbers(30)]
     };
   })(),
   activitySelector : (() => {

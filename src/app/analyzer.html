@@ -1,30 +1,67 @@
-<div ng-controller="AnalyzerController as ctrl"  layout="row" layout-padding>
-  <div flex="33">
-    <h3 class="md-title">
-      Source
-      <button ng-if="ctrl.state == 'finished'" class="md-button md-primary md-raised" ng-click="ctrl.render()">Start</button>
-      <button ng-if="ctrl.state == 'stepping'" class="md-button md-primary md-raised" ng-click="ctrl.play()">Play</button>
-      <button ng-if="ctrl.state == 'playing'" class="md-button md-primary md-raised" ng-click="ctrl.pause()">Pause</button>
-      <button ng-if="ctrl.state == 'stepping'" class="md-button md-primary md-raised" ng-click="ctrl.step()">Step</button>
-      <button ng-if="ctrl.state != 'finished'" class="md-button md-primary md-raised" ng-click="ctrl.stop()">Stop</button>
-       <md-checkbox ng-model="ctrl.memoize" ng-disabled="ctrl.state != 'finished'">Memoize?</md-checkbox>
-    </h3>
-    
-    <md-select ng-model="ctrl.algo" ng-change="ctrl.select()">
-      <md-option ng-repeat="(algo, v) in ctrl.algos" ng-value="v">{{algo}}</md-option>
-    </md-select>
-    
-    <div ui-ace="{
-      useWrapMode : true,
-      mode: 'javascript'
-    }" ng-model="ctrl.source" required></div>
-    <h3 class="md-title">Input</h3>
-    <div ui-ace="{
-      useWrapMode : true,
-      mode: 'javascript'
-    }" ng-model="ctrl.input" required></div>
-  </div>
-  <div flex="66">
-    <call-hierarchy root="ctrl.root" frame-id="ctrl.activeFrameId"></call-hierarchy>
-  </div>
+<div ng-controller="AnalyzerController as ctrl" layout="column" class="analyzer full-height">
+  <section class="full-height">
+    <md-sidenav
+        class="md-sidenav-left"
+        md-component-id="left"
+        md-disable-backdrop
+        md-whiteframe="4">
+      <md-toolbar class="md-theme-indigo">
+        <h1 class="md-toolbar-tools">Configure</h1>
+      </md-toolbar>
+      <md-content layout-padding layout="column">
+        <md-input-container>
+          <label>Template</label>
+          <md-select ng-model="ctrl.algo" ng-change="ctrl.select()">
+            <md-option ng-repeat="(algo, v) in ctrl.algos" ng-value="v">{{algo}}</md-option>
+          </md-select>
+        </md-input-container>        
+        <md-checkbox ng-model="ctrl.memoize" ng-disabled="ctrl.state != 'finished'">Memoize?</md-checkbox>        
+        <md-input-container>
+          <label>Source</label>
+          <div ui-ace="{
+            useWrapMode : true,
+            mode: 'javascript',
+            theme:'twilight',
+            advanced: { tabSize: 2 }
+          }" ng-model="ctrl.source" required></div>
+        </md-input-container>
+        <md-input-container>
+          <label>Input</label>
+          <div class="small" ui-ace="{
+            useWrapMode : true,
+            mode: 'json',
+            theme:'twilight',
+            advanced: { tabSize: 2 }
+          }" ng-model="ctrl.input" required></div>
+        </md-input-container>
+      </md-content>
+    </md-sidenav>
+    <md-content layout-padding  class="full-height">
+      <div class="full-height">
+        <div class="toolbar">
+          <md-button ng-click="ctrl.$mdSidenav('left').toggle()" class="md-raised md-primary">
+            Configure Algorithm
+          </md-button>
+          <md-button ng-if="ctrl.state == 'finished'" class="md-primary md-raised" ng-click="ctrl.render()">Start</md-button>
+          <md-button ng-if="ctrl.state == 'stepping'" class="md-primary md-raised" ng-click="ctrl.play()">Play</md-button>
+          <md-button ng-if="ctrl.state == 'playing'" class="md-primary md-raised" ng-click="ctrl.pause()">Pause</md-button>
+          <md-button ng-if="ctrl.state == 'stepping'" class="md-primary md-raised" ng-click="ctrl.step()">Step</md-button>
+          <md-button ng-if="ctrl.state != 'finished'" class="md-primary md-raised" ng-click="ctrl.stop()">Stop</md-button>
+        </div>
+        <div class="output">
+          <div layout="row" layout-padding>
+            <div flex="10">
+              <div ng-repeat="item in ctrl.stack">
+                {{item.id}}
+                {{item.args}}
+              </div>
+            </div>
+            <div flex="90">
+              <call-hierarchy root="ctrl.root" frame-id="ctrl.activeFrameId"></call-hierarchy>
+            </div>
+          </div>
+        </div>
+      </div>
+    </md-content>
+  </section>
 </div>

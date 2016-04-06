@@ -6,7 +6,7 @@ type Node = {
   id:number,
   name : string,
   frameId : string,
-  args? : any,
+  args? : any[],
   ret? : any,
   parent? : Node,
   children?: Node[],
@@ -15,7 +15,7 @@ type Node = {
 }
 
 export class AnalyzerController {
-  public static $inject = ['$timeout'];
+  public static $inject = ['$timeout', '$mdSidenav'];
   
   private iterator:Iterator<{frameId:string, action:string, value:any}>;
   private visited:{[key:string]:Node};
@@ -24,25 +24,30 @@ export class AnalyzerController {
   private algo:Algo;
   private globals:{[key:string]:Function};
   
-  public stack:string[];
+  public stack:Node[];
   public root:Node;
   public activeFrameId:string;
   
   
   public source:string;
   public input:string;
-  public memoize:boolean = true;
+  public memoize:boolean = false;
   public state:string = 'finished';
   public algos = data
     
-  constructor(private $timeout:ng.ITimeoutService) {
+  constructor(private $timeout:ng.ITimeoutService, public $mdSidenav) {
   }
   
   select() {
-    this.source = this.algo.fn.toString().replace(/\t/g, '  ');
+    this.memoize = true;
+    this.source = this.algo.fn.toString()
+      .replace(/^\s+/mg, function(v) {
+        return v.replace(/\t|(    )/g, '  ').substring(11);
+      })
+      
     this.input = JSON.stringify(Array.isArray(this.algo.sample) ? 
       this.algo.sample : (this.algo.sample as ()=>any)()
-    );
+    , null, 2);
     this.globals = this.algo.globals || {};
   }
   
@@ -90,7 +95,7 @@ export class AnalyzerController {
       node = this.visited[res.frameId] = {
         name : res.frameId, 
         frameId : res.frameId,
-        args : JSON.stringify(_.clone(res.value)),
+        args : Array.prototype.slice.call(res.value, 0).map(x => _.clone(x)),
         id : ++this.id,
         children : [],
         done : false
@@ -99,7 +104,7 @@ export class AnalyzerController {
       node._children = node.children;
       
       if (this.stack.length) {
-        node.parent = this.visited[this.stack[this.stack.length-1]];
+        node.parent = this.stack[this.stack.length-1];
         let children = node.parent._children;
         children.push(node);
         node.parent.children =  children;
@@ -111,7 +116,7 @@ export class AnalyzerController {
     this.activeFrameId = res.frameId;
         
     switch (res.action) {
-      case 'enter': this.stack.push(res.frameId); break;
+      case 'enter': this.stack.push(node); break;
       case 'leave': this.stack.pop(); this.step(); break;
       case 'return':
         node.ret = _.clone(res.value);
