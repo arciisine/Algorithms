@@ -9,6 +9,11 @@
       <button ng-if="ctrl.state != 'finished'" class="md-button md-primary md-raised" ng-click="ctrl.stop()">Stop</button>
        <md-checkbox ng-model="ctrl.memoize" ng-disabled="ctrl.state != 'finished'">Memoize?</md-checkbox>
     </h3>
+    
+    <md-select ng-model="ctrl.algo" ng-change="ctrl.select()">
+      <md-option ng-repeat="(algo, v) in ctrl.algos" ng-value="v">{{algo}}</md-option>
+    </md-select>
+    
     <div ui-ace="{
       useWrapMode : true,
       mode: 'javascript'

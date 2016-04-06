@@ -1,4 +1,4 @@
-import {sum, mergeSort, cutRod, quicksort,activitySelector} from '../data/index';
+import {data,Algo} from '../data/index';
 import {Analyzer} from '../analyzer/index';
 
 type Node = {
@@ -21,23 +21,29 @@ export class AnalyzerController {
   private visited:{[key:string]:Node};
   private id:number;  
   private delay:number = 0;
+  private algo:Algo;
+  private globals:{[key:string]:Function};
   
   public stack:string[];
   public root:Node;
   public activeFrameId:string;
   
-  private globals:any;
+  
   public source:string;
   public input:string;
   public memoize:boolean = true;
   public state:string = 'finished';
-  
-  
+  public algos = data
+    
   constructor(private $timeout:ng.ITimeoutService) {
-    let fn = cutRod;
-    this.source = fn.toString()
-    this.input = JSON.stringify(fn['sample']);
-    this.globals = fn['globals'];
+  }
+  
+  select() {
+    this.source = this.algo.fn.toString().replace(/\t/g, '  ');
+    this.input = JSON.stringify(Array.isArray(this.algo.sample) ? 
+      this.algo.sample : (this.algo.sample as ()=>any)()
+    );
+    this.globals = this.algo.globals || {};
   }
   
   render() {
