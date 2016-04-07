@@ -1,99 +1,93 @@
-<div ng-controller="AnalyzerController as ctrl" layout="column" layout-fill class="analyzer">
-  <section>
-    <md-sidenav
-        class="md-sidenav-right"
-        md-component-id="right"
-        md-disable-backdrop
-        md-whiteframe="4">
-      <md-toolbar class="md-theme-indigo">
-        <div class="md-toolbar-tools">
-          <span>Configure</span>
-          <span flex></span>
-          <md-button ng-click="ctrl.$mdSidenav('right').close()">
-            <md-icon>close</md-icon>
+<section ng-controller="AnalyzerController as ctrl" layout="column" class="analyzer">
+  <md-sidenav
+      class="md-sidenav-right"
+      md-component-id="right"
+      md-disable-backdrop
+      md-whiteframe="4">
+    <md-toolbar class="md-theme-indigo">
+      <div class="md-toolbar-tools">
+        <span>Configure</span>
+        <span flex></span>
+        <md-button ng-click="ctrl.$mdSidenav('right').close()">
+          <md-icon>close</md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+    <md-content layout-padding layout="column">
+      <md-input-container>
+        <label>Template</label>
+        <md-select ng-model="__x" ng-change="ctrl.selectTemplate(__x);">
+          <md-option ng-repeat="(algo, v) in ctrl.templates">{{algo}}</md-option>
+        </md-select>
+      </md-input-container>        
+      <md-checkbox ng-model="ctrl.memoize">Memoize?</md-checkbox>        
+      <md-input-container>
+        <label>Source</label>
+        <div ui-ace="{
+          useWrapMode : true,
+          mode: 'javascript',
+          theme:'twilight',
+          advanced: { tabSize: 2 }
+        }" ng-model="ctrl.algoSource" ng-change="ctrl.readAlgo(); __x = null;" required></div>
+      </md-input-container>
+      <md-input-container>
+        <label>Input</label>
+        <div class="small" ui-ace="{
+          useWrapMode : true,
+          mode: 'json',
+          theme:'twilight',
+          advanced: { tabSize: 2 }
+        }" ng-model="ctrl.inputSource" ng-change="ctrl.readInput(); __x = null;" required></div>
+      </md-input-container>
+    </md-content>
+  </md-sidenav>
+  <md-content layout-fill>
+    <md-toolbar layout="row" class="actions">
+      <div class="md-toolbar-tools">
+        <span>Algorithm <span ng-show="ctrl.algo">&mdash; {{ctrl.algo.name}}</span></span>
+        <span flex></span>
+        <span ng-show="ctrl.isValid()">
+          <md-button ng-disabled="ctrl.state == 'playing'" ng-click="ctrl.play()" class="md-icon-button" aria-label="Play">
+            <md-icon>play_arrow</md-icon>
           </md-button>
-        </div>
-      </md-toolbar>
-      <md-content layout-padding layout="column">
-        <md-input-container>
-          <label>Template</label>
-          <md-select ng-model="__x" ng-change="ctrl.selectTemplate(__x);">
-            <md-option ng-repeat="(algo, v) in ctrl.templates">{{algo}}</md-option>
-          </md-select>
-        </md-input-container>        
-        <md-checkbox ng-model="ctrl.memoize">Memoize?</md-checkbox>        
-        <md-input-container>
-          <label>Source</label>
-          <div ui-ace="{
-            useWrapMode : true,
-            mode: 'javascript',
-            theme:'twilight',
-            advanced: { tabSize: 2 }
-          }" ng-model="ctrl.algoSource" ng-change="ctrl.readAlgo(); __x = null;" required></div>
-        </md-input-container>
-        <md-input-container>
-          <label>Input</label>
-          <div class="small" ui-ace="{
-            useWrapMode : true,
-            mode: 'json',
-            theme:'twilight',
-            advanced: { tabSize: 2 }
-          }" ng-model="ctrl.inputSource" ng-change="ctrl.readInput(); __x = null;" required></div>
-        </md-input-container>
-      </md-content>
-    </md-sidenav>
-    <md-content>
-      <div>
-        <md-toolbar layout="row" class="actions">
+          <md-button ng-disabled="ctrl.state != 'playing'"  ng-click="ctrl.pause()" class="md-icon-button" aria-label="Pause">
+            <md-icon>pause</md-icon>  
+          </md-button>
+          <md-button ng-disabled="ctrl.state == 'playing'" ng-click="ctrl.next()" class="md-icon-button" aria-label="Step">
+            <md-icon>navigate_next</md-icon>
+          </md-button>
+          <md-button ng-click="ctrl.stop()" class="md-icon-button" aria-label="Stop">
+            <md-icon>stop</md-icon>
+          </md-button>
+        </span>
+        <md-button ng-click="ctrl.$mdSidenav('right').open()" class="md-icon-button" aria-label="Settings">
+          <md-icon>settings</md-icon>
+        </md-button>            
+      </div>
+    </md-toolbar>
+    <div class="output" layout="row">
+      <div flex="20" class="stack">
+        <md-toolbar layout="row" class="md-primary md-hue-2">
           <div class="md-toolbar-tools">
-            <span>Algorithm <span ng-show="ctrl.algo">&mdash; {{ctrl.algo.name}}</span></span>
-            <span flex></span>
-            <span ng-show="ctrl.isValid()">
-              <md-button ng-disabled="ctrl.state == 'playing'" ng-click="ctrl.play()" class="md-icon-button" aria-label="Play">
-                <md-icon>play_arrow</md-icon>
-              </md-button>
-              <md-button ng-disabled="ctrl.state != 'playing'"  ng-click="ctrl.pause()" class="md-icon-button" aria-label="Pause">
-                <md-icon>pause</md-icon>  
-              </md-button>
-              <md-button ng-disabled="ctrl.state == 'playing'" ng-click="ctrl.next()" class="md-icon-button" aria-label="Step">
-                <md-icon>navigate_next</md-icon>
-              </md-button>
-              <md-button ng-click="ctrl.stop()" class="md-icon-button" aria-label="Stop">
-                <md-icon>stop</md-icon>
-              </md-button>
-            </span>
-            <md-button ng-click="ctrl.$mdSidenav('right').open()" class="md-icon-button" aria-label="Settings">
-              <md-icon>settings</md-icon>
-            </md-button>            
+            <span>Stack</span>
           </div>
         </md-toolbar>
-        <div class="output">
-          <div layout="row">
-            <div flex="20" class="stack">
-              <md-toolbar layout="row" class="md-primary md-hue-2">
-                <div class="md-toolbar-tools">
-                  <span>Stack</span>
-                </div>
-              </md-toolbar>
-              <md-content  layout="column" layout-fill layout-align="center center">
-                <div ng-if="!ctrl.stack">No Data</div>
-                <call-stack ng-if="ctrl.stack" stack="ctrl.stack"></call-stack>
-              </md-content>
-            </div>
-            <div flex="80" class="hierarchy">
-              <md-toolbar layout="row"  class="md-primary md-hue-2">
-                <div class="md-toolbar-tools">
-                  <span>Call Hierarchy</span>
-                </div>
-              </md-toolbar>
-              <md-content layout="column" layout-fill layout-align="center center">
-                <div ng-if="!ctrl.root">No Data</div>
-                <call-hierarchy ng-if="ctrl.root" root="ctrl.root" frame-id="ctrl.activeFrameId"></call-hierarchy>
-              </md-content>
-            </div>
-          </div>
-        </div>
+        <md-content  layout="column" layout-align="center center">
+          <div ng-if="!ctrl.stack">No Data</div>
+          <call-stack ng-if="ctrl.stack" stack="ctrl.stack"></call-stack>
+        </md-content>
       </div>
-    </md-content>
-  </section>
-</div>
+      <div flex="80" class="hierarchy">
+        <md-toolbar layout="row"  class="md-primary md-hue-2">
+          <div class="md-toolbar-tools">
+            <span>Call Hierarchy</span>
+          </div>
+        </md-toolbar>
+        <md-content layout="column"  layout-align="center center">
+          <div ng-if="!ctrl.root">No Data</div>
+          <call-hierarchy ng-if="ctrl.root" root="ctrl.root" frame-id="ctrl.activeFrameId"></call-hierarchy>
+        </md-content>
+      </div>
+    </div>
+  </md-content>
+</section>

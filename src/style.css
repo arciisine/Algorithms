@@ -46,6 +46,11 @@ call-hierarchy {
   height: 100px;
 }
 
+.analyzer .output .hierarchy md-content, 
+.analyzer .output .stack md-content{
+  height: calc(100% - 128px);
+}
+
 .analyzer .output .hierarchy {
     border-left: 1px solid rgba(100,100,100,.25);
 }
