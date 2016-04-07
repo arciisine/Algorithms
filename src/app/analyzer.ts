@@ -61,20 +61,21 @@ export class AnalyzerController {
     , null, 2);       
     this.globals = algo.globals || {};
     
-    this.readFunction();
+    this.readAlgo();
     this.readInput();
   }
   
   resetState() {
     delete this.root;
+    delete this.state;    
+    delete this.iterator;
+
     this.stack = [];
     this.visited = {};
     this.id = 1;
-    this.iterator = null;
-    this.state = 'finished';    
   }
   
-  readFunction() {
+  readAlgo() {
     this.algo = eval(this.algoSource);
     this.resetState();    
   }  
@@ -89,15 +90,14 @@ export class AnalyzerController {
   }
   
   play() {
-    if (!this.iterator) {
-      this.iterator = Analyzer.rewrite(this.algo as any, this.globals, this.memoize)(...this.input);
-    }
+    this.begin();
     this.state = 'playing';
     this.delay = 250;
     this.step();    
   }
   
   pause() {
+    this.begin();
     this.state = 'stepping';
     this.delay = 0;
   }
@@ -113,6 +113,12 @@ export class AnalyzerController {
       this.iterator = Analyzer.rewrite(this.algo as any, this.globals, this.memoize)(...this.input);
     }
     this.step()
+  }
+ 
+  private begin() {
+    if (!this.iterator) {
+      this.iterator = Analyzer.rewrite(this.algo as any, this.globals, this.memoize)(...this.input);
+    }
   }
   
   private step() {

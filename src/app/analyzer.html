@@ -46,9 +46,9 @@
       <div class="full-height">
         <md-toolbar layout="row" class="actions">
           <div class="md-toolbar-tools">
-            <span>Algorithm <span ng-if="ctrl.algo">&mdash; {{ctrl.algo.name}}</span></span>
+            <span>Algorithm <span ng-show="ctrl.algo">&mdash; {{ctrl.algo.name}}</span></span>
             <span flex></span>
-            <span ng-if="ctrl.isValid()">
+            <span ng-show="ctrl.isValid()">
               <md-button ng-disabled="ctrl.state != 'stepping'" ng-click="ctrl.play()" class="md-icon-button" aria-label="Play">
                 <md-icon>play_arrow</md-icon>
               </md-button>
