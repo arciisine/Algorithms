@@ -13,10 +13,10 @@ export default function init() {
         .primaryPalette('blue');
       $mdThemingProvider.setDefaultTheme('altTheme');  
     })
+    .filter("prettySerialize", PrettySerialize)
     .controller("AnalyzerController", AnalyzerController.$inject.slice(0).concat([AnalyzerController] as any))
     .directive("callHierarchy", CallHierarchyDirective)
     .directive("callStack", CallStackDirective)
-    .filter("prettySerialize", PrettySerialize)
     
     angular.bootstrap(document, ['Algorithm'])
 }

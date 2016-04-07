@@ -33,6 +33,6 @@ function serialize(o, d:number = 0):String {
   }  
 }
 
-export function PrettySerialize(inp) {
+export function PrettySerialize() {
     return (inp) => serialize(inp);  
 }  

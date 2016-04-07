@@ -1,7 +1,7 @@
 import * as _ from "lodash";
 //import * as d3 from "d3";
 
-export let CallHierarchyDirective = ['$timeout', 'prettySerialize', function($timeout, prettySerialize) {
+export let CallHierarchyDirective = ['$timeout', 'prettySerializeFilter', function($timeout, prettySerializeFilter) {
   let margin = 20;
   let delay = 500;
   let diagonal = d3.svg.diagonal()
@@ -43,7 +43,7 @@ export let CallHierarchyDirective = ['$timeout', 'prettySerialize', function($ti
     node.select("text")
       .attr("y", 25)
       .attr("dx", "1em")
-      .text(d => <any>prettySerialize(d.done ? d.ret : d.args))
+      .text(d => <any>prettySerializeFilter(d.done ? d.ret : d.args))
       .attr("text-anchor", d => d.children ? "end" : "start")
       .style("fill-opacity", 1);
       
