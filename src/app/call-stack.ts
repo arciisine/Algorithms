@@ -13,7 +13,7 @@ export let CallStackDirective = [function($timeout) {
           <md-list-item class="md-3-line"" ng-click="null">
             <div class="md-list-item-text" layout="column">
               <h3>{{item.id}}</h3>
-              <p>{{item.args}}</p>
+              <p>{{item.args | prettySerialize}}</p>
             </div>
           </md-list-item>
           <md-divider ></md-divider>

@@ -1,45 +1,11 @@
 import * as _ from "lodash";
-import * as d3 from "d3";
+//import * as d3 from "d3";
 
-export let CallHierarchyDirective = ['$timeout', function($timeout) {
+export let CallHierarchyDirective = ['$timeout', 'prettySerialize', function($timeout, prettySerialize) {
   let margin = 20;
   let delay = 500;
   let diagonal = d3.svg.diagonal()
   
-  function serialize(o, d:number = 0):String {
-    if (o === null || o === undefined) {
-      return "null";
-    } else if (typeof o === 'string') {
-      return `"${o}"`
-    } else if (typeof o === 'number' || typeof o === 'boolean') {
-      return `${o}`;
-    } else {
-      if (d > 2) {
-        return '...';
-      } else if (Array.isArray(o)) {
-        let arr = o;
-        if (o.length > 3) {
-          arr = o.slice(0,3);
-        }
-        let res = `${arr.map(v => serialize(v, d+1))}`;
-        return o.length > 3 ? `[${res}, ...]#${o.length}` : `[${res}]`;
-      } else if (_.isPlainObject(o)) {
-        let keys = Object.keys(o);
-        let outKeys = keys;
-        if (keys.length > 3) {
-          outKeys = keys.slice(0,3);
-        }
-        let res = JSON.stringify(
-          _.fromPairs(
-            outKeys.map(x => [x, serialize(o[x], d+1)])
-          )
-        );
-        return keys.length > 3 ? res.replace(/}$/, '...}') : res;
-      } else {
-        return '[Object]';
-      }
-    }  
-  }
   
   function update(root:any, frameId:string, svg:d3.Selection<any>, tree:d3.layout.Tree<any>) {
     // Compute the new tree layout.
@@ -77,7 +43,7 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
     node.select("text")
       .attr("y", 25)
       .attr("dx", "1em")
-      .text(d => <any>serialize(d.done ? d.ret : d.args))
+      .text(d => <any>prettySerialize(d.done ? d.ret : d.args))
       .attr("text-anchor", d => d.children ? "end" : "start")
       .style("fill-opacity", 1);
       
@@ -99,8 +65,8 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
         var o = {x: d.source.x0, y: d.source.y0};
         return diagonal({source:o, target:o})
       })
-      .transition().duration(delay)          
-      .attr("d", d => diagonal(d))
+      .transition().duration(delay)    
+      //.attr("d", d => diagonal(d))
         
     link
       .transition().duration(delay)    
@@ -132,20 +98,46 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
           .size([w-margin*2, w-margin*2])
           .nodeSize([70,70]);
                     
-        let svg = d3.select(el[0].tagName.toLowerCase())
+        
+        let root = d3.select(el[0].tagName.toLowerCase())
           .append("svg")
             .attr("width", w)
             .attr("height", h)
             .append("g")
-              .attr("transform", `translate(${margin + w/2},${margin + h/2})`);
-              
-        let zoom = d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", () => 
-          svg.attr("transform", `translate(${d3.event['translate']}) scale(${d3.event['scale']})`))
-          
-        svg.call(zoom);
-        
+            .attr("transform", `translate(${margin + (w/2)},${margin + h/2})`);
+                        
+        let svg = root.append("g")
+          .attr("container", "test")
+                                  
+        var zoom = d3.behavior.zoom()
+          .translate([0, 0])
+          .scale(2)
+          .scaleExtent([0, 8])
+          .on("zoom",   function zoomed(e) {
+            //g.style("stroke-width", 1.5 / d3.event['scale'] + "px");
+            d3.select(this).attr("transform", `translate(${d3.event['translate']}) scale(${d3.event['scale']})`);
+          })                    
+            
+        svg
+          .call(zoom)
+          .call(zoom.event);
+
+        svg
+          .call(zoom.translate([0,0]).scale(2).event)
+                                        
         scope.$watch('root + "||" + root.updated', function(r) {
           update(scope.root, scope.frameId, svg, tree);
+
+          let bounds = (<any>svg[0][0]).getBoundingClientRect();
+          let scale = .8 / Math.max(bounds.width / w, bounds.height / h);
+          let translate:[number,number] = [w / 2 - scale * bounds.left, h / 2 - scale * bounds.top];
+
+          svg
+            .transition()
+            .duration(delay)
+            .call(zoom
+              .translate(translate)
+              .scale(scale).event)
         });
       }, 100);
     }

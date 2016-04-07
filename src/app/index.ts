@@ -1,6 +1,7 @@
 import {AnalyzerController} from './analyzer';
 import {CallHierarchyDirective} from './call-hierarchy';
 import {CallStackDirective} from './call-stack';
+import {PrettySerialize} from './pretty-serialize';
 
 export default function init() {
   console.log("Initializing");
@@ -15,7 +16,7 @@ export default function init() {
     .controller("AnalyzerController", AnalyzerController.$inject.slice(0).concat([AnalyzerController] as any))
     .directive("callHierarchy", CallHierarchyDirective)
     .directive("callStack", CallStackDirective)
-  
-  
+    .filter("prettySerialize", PrettySerialize)
+    
     angular.bootstrap(document, ['Algorithm'])
 }
