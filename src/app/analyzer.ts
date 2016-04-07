@@ -91,8 +91,12 @@ export class AnalyzerController {
   }
   
   stop() {
-    this.delay = 0;
-    this.state = 'stopped';
+    if (this.state === 'stopped') {
+      this.reset();
+    } else {
+      this.delay = 0;
+      this.state = 'stopped';
+    }
   }
  
   next() {

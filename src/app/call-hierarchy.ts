@@ -6,28 +6,38 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
   let delay = 500;
   let diagonal = d3.svg.diagonal()
   
-  function toString(o):String {
+  function serialize(o, d:number = 0):String {
     if (o === null || o === undefined) {
       return "null";
-    } else if (Array.isArray(o)) {
-      if (o.length > 3) {
-        return `[${o.slice(0,2).map(toString)}, ..., ${toString(o[o.length-1])}]#${o.length}`
-      } else {
-        return `[${o}]`;
-      }
-    } else if (_.isPlainObject(o)) {
-      let keys = Object.keys(o);
-      if (keys.length > 3) {
-        
-      } else {
-        
-      }
     } else if (typeof o === 'string') {
       return `"${o}"`
     } else if (typeof o === 'number' || typeof o === 'boolean') {
       return `${o}`;
     } else {
-      return '[Object]';
+      if (d > 2) {
+        return '...';
+      } else if (Array.isArray(o)) {
+        let arr = o;
+        if (o.length > 3) {
+          arr = o.slice(0,3);
+        }
+        let res = `${arr.map(v => serialize(v, d+1))}`;
+        return o.length > 3 ? `[${res}, ...]#${o.length}` : `[${res}]`;
+      } else if (_.isPlainObject(o)) {
+        let keys = Object.keys(o);
+        let outKeys = keys;
+        if (keys.length > 3) {
+          outKeys = keys.slice(0,3);
+        }
+        let res = JSON.stringify(
+          _.fromPairs(
+            outKeys.map(x => [x, serialize(o[x], d+1)])
+          )
+        );
+        return keys.length > 3 ? res.replace(/}$/, '...}') : res;
+      } else {
+        return '[Object]';
+      }
     }  
   }
   
@@ -56,7 +66,7 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
     node
       .select('circle')
       .transition().duration(delay)
-      .attr("r", 10)
+      .attr("r", 15)
       .style("fill-opacity", d => d.frameId === frameId ? 1 : .7)          
       .style("fill", d => d.frameId === frameId ? "#008" : (d.done ?  "#080" : "#800"));
         
@@ -65,9 +75,9 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
       .attr("transform", d => `translate(${d.x},${d.y})`)
       
     node.select("text")
-      .attr("y", 20)
-      .attr("dx", ".5em")
-      .text(d => d.done ? JSON.stringify(d.ret).substring(0,10) : d.args.map(x => JSON.stringify(x).substring(0, 10)+"..."))
+      .attr("y", 25)
+      .attr("dx", "1em")
+      .text(d => <any>serialize(d.done ? d.ret : d.args))
       .attr("text-anchor", d => d.children ? "end" : "start")
       .style("fill-opacity", 1);
       
@@ -120,14 +130,13 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
               
         let tree = d3.layout.tree()
           .size([w-margin*2, w-margin*2])
-          .nodeSize([30,30]);
+          .nodeSize([70,70]);
                     
         let svg = d3.select(el[0].tagName.toLowerCase())
           .append("svg")
             .attr("width", w)
             .attr("height", h)
-            
-        let g = svg.append("g")
+            .append("g")
               .attr("transform", `translate(${margin + w/2},${margin + h/2})`);
               
         let zoom = d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", () => 
