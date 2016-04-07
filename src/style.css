@@ -32,13 +32,6 @@ call-hierarchy {
   stroke-width: 2px;
 }
 
-.analyzer .toolbar {
-  height: 40px;  
-} 
-
-.analyzer .output {
-  height: calc(100% - 40px);
-}
 .full-height {
   height: 100%;
   overflow: hidden;  
@@ -60,4 +53,8 @@ call-hierarchy {
 
 .small[ui-ace] {
   height: 100px;
+}
+
+.analyzer .output .hierarchy {
+    border-left: 1px solid rgba(100,100,100,.25);
 }

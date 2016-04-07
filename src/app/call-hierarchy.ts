@@ -120,7 +120,7 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
               
         let tree = d3.layout.tree()
           .size([w-margin*2, w-margin*2])
-          .nodeSize([50,50]);
+          .nodeSize([30,30]);
                     
         let svg = d3.select(el[0].tagName.toLowerCase())
           .append("svg")

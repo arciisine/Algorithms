@@ -21,49 +21,80 @@ export class AnalyzerController {
   private visited:{[key:string]:Node};
   private id:number;  
   private delay:number = 0;
-  private algo:Algo;
   private globals:{[key:string]:Function};
   
+  //Stack
   public stack:Node[];
+  
+  //Hierarchy
   public root:Node;
   public activeFrameId:string;
   
+  //Templates
+  public templates = data
   
-  public source:string;
+  //Inputs
+  public algo:Function;
+  public algoSource:string;  
   public input:string;
+  public inputSource:string;  
   public memoize:boolean = false;
-  public state:string = 'finished';
-  public algos = data
-    
-  constructor(private $timeout:ng.ITimeoutService, public $mdSidenav) {
-  }
   
-  select() {
-    this.memoize = true;
-    this.source = this.algo.fn.toString()
+  //Buttons
+  public state:string;
+    
+  constructor(private $timeout:ng.ITimeoutService, public $mdSidenav) {}
+  
+  selectTemplate(name) {
+    if (!name) return;
+
+    let algo = this.templates[name]
+
+    this.memoize = false;
+    this.algoSource = algo.fn.toString()
       .replace(/^\s+/mg, function(v) {
         return v.replace(/\t|(    )/g, '  ').substring(11);
       })
       
-    this.input = JSON.stringify(Array.isArray(this.algo.sample) ? 
-      this.algo.sample : (this.algo.sample as ()=>any)()
-    , null, 2);
-    this.globals = this.algo.globals || {};
+    this.inputSource = JSON.stringify(Array.isArray(algo.sample) ? 
+      algo.sample : (algo.sample as ()=>any)()
+    , null, 2);       
+    this.globals = algo.globals || {};
+    
+    this.readFunction();
+    this.readInput();
   }
   
-  render() {
+  resetState() {
     delete this.root;
     this.stack = [];
     this.visited = {};
     this.id = 1;
-    this.iterator = Analyzer.rewrite(this.source as any, this.globals, this.memoize)(...JSON.parse(this.input));
-    this.state = 'stepping';
+    this.iterator = null;
+    this.state = 'finished';    
+  }
+  
+  readFunction() {
+    this.algo = eval(this.algoSource);
+    this.resetState();    
   }  
   
+  readInput() {
+    this.input = JSON.parse(this.inputSource);  
+    this.resetState();
+  }
+  
+  isValid() {
+    return !!this.algo && !!this.input;
+  }
+  
   play() {
+    if (!this.iterator) {
+      this.iterator = Analyzer.rewrite(this.algo as any, this.globals, this.memoize)(...this.input);
+    }
     this.state = 'playing';
     this.delay = 250;
-    this.step();
+    this.step();    
   }
   
   pause() {
@@ -72,12 +103,19 @@ export class AnalyzerController {
   }
   
   stop() {
-    this.state = 'finished';
+    this.state = 'stepping';
     delete this.iterator;
     this.delay = 0;
   }
+ 
+  next() {
+    if (!this.iterator) {
+      this.iterator = Analyzer.rewrite(this.algo as any, this.globals, this.memoize)(...this.input);
+    }
+    this.step()
+  }
   
-  step() {
+  private step() {
     if (!this.iterator) return;
     let next = this.iterator.next();    
     if (next.done) {
