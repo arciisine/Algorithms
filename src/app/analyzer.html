@@ -20,7 +20,7 @@
           <md-option ng-repeat="(algo, v) in ctrl.templates">{{algo}}</md-option>
         </md-select>
       </md-input-container>        
-      <md-checkbox ng-model="ctrl.memoize">Memoize?</md-checkbox>        
+      <md-checkbox ng-model="ctrl.memoize" ng-change="ctrl.readMemoize();">Memoize?</md-checkbox>        
       <md-input-container>
         <label>Source</label>
         <div ui-ace="{
@@ -44,7 +44,7 @@
   <md-content layout-fill>
     <md-toolbar layout="row" class="actions">
       <div class="md-toolbar-tools">
-        <span>Algorithm <span ng-show="ctrl.algo">&mdash; {{ctrl.algo.name}}</span></span>
+        <span>Algorithm <span ng-show="ctrl.algo">&mdash; {{ctrl.algo.name}} &mdash; {{ctrl.input | prettySerialize}}</span></span>
         <span flex></span>
         <span ng-show="ctrl.isValid()">
           <md-button ng-disabled="ctrl.state == 'playing'" ng-click="ctrl.play()" class="md-icon-button" aria-label="Play">

@@ -28,7 +28,30 @@ let data:{[key:string]:Algo} = {
       }
       return ret;
     };
-    var sample = [{ value: 10, left: { value: 5 }, right: { value: 11 } }];
+    var sample = [{ 
+      value: 10, 
+      left: { 
+        value: 5,
+        left : {
+          value : 10,
+          right : {
+            value : 20
+          }
+        } 
+      }, 
+      right: { 
+        value: 11,
+        left : {
+          value : 2
+        },
+        right : {
+          value : 23,
+          right : {
+            value : 12
+          }
+        }
+      } 
+    }];
     return {
       fn : sum,
       sample : sample

@@ -64,7 +64,11 @@ export class AnalyzerController {
     this.readAlgo();
     this.readInput();
   }
-    
+  
+  readMemoize() {
+    this.reset();
+  }
+  
   readAlgo() {
     this.algo = eval(`(${this.algoSource})`);
     this.reset();    
@@ -80,9 +84,15 @@ export class AnalyzerController {
   }
   
   play() {
-    this.state = 'playing';
-    this.delay = 250;
-    this.next();    
+    if (!this.iterator) {
+      this.reset();
+      this.init();
+      this.$timeout(() => this.play());
+    } else {
+      this.state = 'playing';
+      this.delay = 250;
+      this.step();
+    }
   }
   
   pause() {
@@ -95,18 +105,23 @@ export class AnalyzerController {
       this.reset();
     } else {
       this.delay = 0;
+      delete this.iterator;
       this.state = 'stopped';
     }
   }
  
+  init() {
+    this.iterator = Analyzer.rewrite(this.algo as any, this.globals, this.memoize)(...this.input);
+  }
+  
   next() {
-    if (this.state === 'stopped') {
-      this.reset();
-    }
     if (!this.iterator) {
-      this.iterator = Analyzer.rewrite(this.algo as any, this.globals, this.memoize)(...this.input);
+      this.reset();
+      this.init();
+      this.$timeout(() => this.next());
+    } else {
+      this.step();
     }
-    this.step();
   }
  
   private reset() {
