@@ -51,38 +51,28 @@ export class AnalyzerController {
     let algo = this.templates[name]
 
     this.memoize = false;
-    this.algoSource = algo.fn.toString()
-      .replace(/^\s+/mg, function(v) {
-        return v.replace(/\t|(    )/g, '  ').substring(11);
-      })
-      
-    this.inputSource = JSON.stringify(Array.isArray(algo.sample) ? 
-      algo.sample : (algo.sample as ()=>any)()
-    , null, 2);       
     this.globals = algo.globals || {};
+    
+    this.algoSource = algo.fn.toString()
+      .replace(/^\s+/mg, v => v.replace(/\t|(    )/g, '  ').substring(11))
+      
+    let arr = Array.isArray(algo.sample) ? 
+      algo.sample : (algo.sample as ()=>any)();
+      
+    this.inputSource = `[\n  ${(arr || []).map(r => JSON.stringify(r)).join(',\n  ')}\n]`
     
     this.readAlgo();
     this.readInput();
   }
-  
-  resetState() {
-    delete this.root;
-    delete this.state;    
-    delete this.iterator;
-
-    this.stack = [];
-    this.visited = {};
-    this.id = 1;
-  }
-  
+    
   readAlgo() {
-    this.algo = eval(this.algoSource);
-    this.resetState();    
+    this.algo = eval(`(${this.algoSource})`);
+    this.reset();    
   }  
   
   readInput() {
     this.input = JSON.parse(this.inputSource);  
-    this.resetState();
+    this.reset();
   }
   
   isValid() {
@@ -90,37 +80,42 @@ export class AnalyzerController {
   }
   
   play() {
-    this.begin();
     this.state = 'playing';
     this.delay = 250;
-    this.step();    
+    this.next();    
   }
   
   pause() {
-    this.begin();
     this.state = 'stepping';
     this.delay = 0;
   }
   
   stop() {
-    this.state = 'stepping';
-    delete this.iterator;
     this.delay = 0;
+    this.state = 'stopped';
   }
  
   next() {
+    if (this.state === 'stopped') {
+      this.reset();
+    }
     if (!this.iterator) {
       this.iterator = Analyzer.rewrite(this.algo as any, this.globals, this.memoize)(...this.input);
     }
-    this.step()
+    this.step();
   }
  
-  private begin() {
-    if (!this.iterator) {
-      this.iterator = Analyzer.rewrite(this.algo as any, this.globals, this.memoize)(...this.input);
-    }
+  private reset() {
+    delete this.root;
+    delete this.state;    
+    delete this.iterator;
+
+    this.delay = 0;
+    this.stack = [];
+    this.visited = {};
+    this.id = 1;
   }
-  
+   
   private step() {
     if (!this.iterator) return;
     let next = this.iterator.next();    
