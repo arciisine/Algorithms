@@ -72,8 +72,8 @@
             <span>Stack</span>
           </div>
         </md-toolbar>
-        <md-content  layout="column" layout-align="center center">
-          <div ng-if="!ctrl.stack">No Data</div>
+        <md-content>
+          <div ng-if="!ctrl.stack" layout="column" layout-fill layout-align="center center">No Data</div>
           <call-stack ng-if="ctrl.stack" stack="ctrl.stack"></call-stack>
         </md-content>
       </div>
@@ -83,8 +83,8 @@
             <span>Call Hierarchy</span>
           </div>
         </md-toolbar>
-        <md-content layout="column"  layout-align="center center">
-          <div ng-if="!ctrl.root">No Data</div>
+        <md-content>
+          <div ng-if="!ctrl.root" layout="column" layout-fill layout-align="center center">No Data</div>
           <call-hierarchy ng-if="ctrl.root" root="ctrl.root" frame-id="ctrl.activeFrameId"></call-hierarchy>
         </md-content>
       </div>

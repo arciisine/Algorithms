@@ -126,8 +126,9 @@ export let CallHierarchyDirective = ['$timeout', function($timeout) {
           .append("svg")
             .attr("width", w)
             .attr("height", h)
-            .append("g")
-              .attr("transform", `translate(${margin + w/2},${margin})`);
+            
+        let g = svg.append("g")
+              .attr("transform", `translate(${margin + w/2},${margin + h/2})`);
               
         let zoom = d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", () => 
           svg.attr("transform", `translate(${d3.event['translate']}) scale(${d3.event['scale']})`))
