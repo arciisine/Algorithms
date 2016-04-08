@@ -96,7 +96,9 @@ export let CallHierarchyDirective = ['$timeout', 'prettySerializeFilter', functi
           .size([w-margin*2, w-margin*2]);
                         
         let sw = w/4;
-        let sh = h/4;                    
+        let sh = h/4;
+        let nx = 100;
+        let ny = 100;
         
         let svg = d3.select(el[0].tagName.toLowerCase())
           .append("svg")
@@ -109,30 +111,37 @@ export let CallHierarchyDirective = ['$timeout', 'prettySerializeFilter', functi
             .append("g")                        
                         
         scope.$watch('root + "||" + root.updated', function(r) {
-          let bounds = (<any>root[0][0]).getBBox()
           
-          sw  = Math.max(bounds.width,  sw);
-          sh  = Math.max(bounds.height, sh);
-          
-          let swm = sw * .1
-          let shm = sh * .1
-          let x  = bounds.x-swm/2
-          let y  = bounds.y-shm/2
-
-          let xscale = (w/sw)*.8;
-          let yscale = (h/sh)*.8;
-          let scale = Math.min(xscale, yscale)
-          let ar = (bounds.width/bounds.height);
-          tree.nodeSize([Math.min((50/ar*2),1000),Math.min((50*ar*2),100)])
-          
-          let viewBox = `${x} ${y} ${sw+swm} ${sh+shm}`;         
-          
-          svg
-            .transition()
-            .duration(delay*.8)
-            .attr("viewBox", viewBox);
+          setTimeout(() => {
+            let bounds = (<any>root[0][0]).getBBox()
             
-          update(scope.root, scale, scope.frameId, root, tree);          
+            sw  = Math.max(bounds.width,  sw);
+            sh  = Math.max(bounds.height, sh);
+            
+            let swm = sw * .1
+            let shm = sh * .1
+            let x  = bounds.x-swm/2
+            let y  = bounds.y-shm/2
+
+            let xscale = (w/sw)*.8;
+            let yscale = (h/sh)*.8;
+            let scale = Math.min(xscale, yscale)
+            let ar = (bounds.width/bounds.height);
+            
+            nx = Math.max((50*xscale),nx)
+            ny = Math.max((50*yscale),ny)
+            tree.nodeSize([nx,ny])
+            
+            let viewBox = `${x} ${y} ${sw+swm} ${sh+shm}`;         
+            
+            svg
+              .transition()
+              .duration(delay*.8)
+              .attr("viewBox", viewBox);
+              
+          }, delay);
+              
+          update(scope.root, 1, scope.frameId, root, tree);          
         });
       }, 100);
     }
