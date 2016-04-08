@@ -34,5 +34,8 @@ function serialize(o, d:number = 0):String {
 }
 
 export function PrettySerialize() {
-    return (inp) => serialize(inp);  
+    return (inp) => {
+      let v = serialize(inp);
+      return v.length > 30 ? v.substring(0, 30) + '...' : v;
+    }  
 }  

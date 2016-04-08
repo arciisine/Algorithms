@@ -41,8 +41,8 @@ export let CallHierarchyDirective = ['$timeout', 'prettySerializeFilter', functi
       .attr("transform", d => `translate(${d.x},${d.y})`)
       
     node.select("text")
-      .attr("y", 25)
-      .attr("dx", "1em")
+      .attr("y", 25*scale)
+      .attr("dx", `${scale}em`)
       .text(d => <any>prettySerializeFilter(d.done ? d.ret : d.args))
       .attr("text-anchor", d => d.children ? "end" : "start")
       .style("fill-opacity", 1);
@@ -65,8 +65,6 @@ export let CallHierarchyDirective = ['$timeout', 'prettySerializeFilter', functi
         var o = {x: d.source.x0, y: d.source.y0};
         return diagonal({source:o, target:o})
       })
-      .transition().duration(delay)    
-      //.attr("d", d => diagonal(d))
         
     link
       .transition().duration(delay)    
@@ -96,19 +94,19 @@ export let CallHierarchyDirective = ['$timeout', 'prettySerializeFilter', functi
               
         let tree = d3.layout.tree()
           .size([w-margin*2, w-margin*2]);
-                    
+                        
+        let sw = w/4;
+        let sh = h/4;                    
         
         let svg = d3.select(el[0].tagName.toLowerCase())
           .append("svg")
             .attr("width", w)
             .attr("height", h)
             .attr("preserveAspectRatio", "xMidYMid meet")
+            .attr("viewBox", `${-sw/2} ${-sh/2} ${sw} ${sh}`);
             
         let root = svg
-            .append("g")
-                        
-        let sw = 400, 
-            sh = 400;
+            .append("g")                        
                         
         scope.$watch('root + "||" + root.updated', function(r) {
           let bounds = (<any>root[0][0]).getBBox()
@@ -121,15 +119,20 @@ export let CallHierarchyDirective = ['$timeout', 'prettySerializeFilter', functi
           let x  = bounds.x-swm/2
           let y  = bounds.y-shm/2
 
-          let ar = (sw/sh);
-          tree.nodeSize([50/(ar*1.5),50*ar*2])
+          let xscale = (w/sw)*.8;
+          let yscale = (h/sh)*.8;
+          let scale = Math.min(xscale, yscale)
+          let ar = (bounds.width/bounds.height);
+          tree.nodeSize([Math.min((50/ar*2),1000),Math.min((50*ar*2),100)])
           
-          let scale = Math.min((w/sw)*.8, (h/sh)*.8);
+          let viewBox = `${x} ${y} ${sw+swm} ${sh+shm}`;
           
+          console.log(viewBox)
+                    
           svg
             .transition()
             .duration(delay*.8)
-            .attr("viewBox", `${x} ${y} ${sw+swm} ${sh+shm}`);
+            .attr("viewBox", viewBox);
             
           update(scope.root, scale, scope.frameId, root, tree);          
         });
