@@ -15,7 +15,7 @@ type Node = {
 }
 
 export class AnalyzerController {
-  public static $inject = ['$timeout', '$mdSidenav'];
+  public static $inject = ['$timeout', '$mdSidenav', '$window'];
   
   private iterator:Iterator<{frameId:string, action:string, value:any}>;
   private visited:{[key:string]:Node};
@@ -43,7 +43,18 @@ export class AnalyzerController {
   //Buttons
   public state:string;
     
-  constructor(private $timeout:ng.ITimeoutService, public $mdSidenav) {}
+  constructor(private $timeout:ng.ITimeoutService, public $mdSidenav, private $window:ng.IWindowService) {
+    let hash =  (this.$window.location.hash.split('#/') ||[]).pop();
+    if (hash) {
+      let [fn,inp,mem] = hash.split('&');
+      this.algoSource = decodeURIComponent(fn);
+      this.inputSource = decodeURIComponent(inp);
+      this.memoize = mem === 'true';
+      this.readAlgo()
+      this.readInput()
+      this.readMemoize();
+    }
+  }
   
   selectTemplate(name) {
     if (!name) return;
@@ -125,6 +136,9 @@ export class AnalyzerController {
   }
  
   private reset() {
+    if (this.algo && this.input) {
+      this.$window.location.hash = `${encodeURIComponent(this.algoSource.replace(/\s+/g, ' '))}&${encodeURIComponent(this.inputSource)}&${this.memoize}`
+    }
     delete this.root;
     delete this.state;    
     delete this.iterator;

@@ -44,7 +44,13 @@
   <md-content layout-fill>
     <md-toolbar layout="row" class="actions">
       <div class="md-toolbar-tools">
-        <span>Algorithm <span ng-show="ctrl.algo">&mdash; {{ctrl.algo.name}} &mdash; {{ctrl.input | prettySerialize}}</span></span>
+        <span>
+          <md-button ng-click="ctrl.share()" class="md-icon-button" aria-label="Share">
+            <md-icon>share</md-icon>
+          </md-button>
+          Algorithm 
+          <span ng-show="ctrl.algo">&mdash; {{ctrl.algo.name}} &mdash; {{ctrl.input | prettySerialize}}</span>
+        </span>
         <span flex></span>
         <span ng-show="ctrl.isValid()">
           <md-button ng-disabled="ctrl.state == 'playing'" ng-click="ctrl.play()" class="md-icon-button" aria-label="Play">
