@@ -7,7 +7,7 @@ export let CallHierarchyDirective = ['$timeout', 'prettySerializeFilter', functi
   let diagonal = d3.svg.diagonal()
   
   
-  function update(root:any, frameId:string, svg:d3.Selection<any>, tree:d3.layout.Tree<any>) {
+  function update(root:any, scale:number, frameId:string, svg:d3.Selection<any>, tree:d3.layout.Tree<any>) {
     // Compute the new tree layout.
     let nodes = root ? tree.nodes(root).reverse() : [];
     
@@ -24,7 +24,7 @@ export let CallHierarchyDirective = ['$timeout', 'prettySerializeFilter', functi
       .attr("transform", d => `translate(${(d.parent || d).x0},${(d.parent || d).y0})`)
 
     nodeEnter
-      .append("circle").attr("r", 3);
+      .append("circle").attr("r", 3*scale);
             
     nodeEnter
       .append("text");
@@ -32,7 +32,7 @@ export let CallHierarchyDirective = ['$timeout', 'prettySerializeFilter', functi
     node
       .select('circle')
       .transition().duration(delay)
-      .attr("r", 15)
+      .attr("r", 15*scale)
       .style("fill-opacity", d => d.frameId === frameId ? 1 : .7)          
       .style("fill", d => d.frameId === frameId ? "#008" : (d.done ?  "#080" : "#800"));
         
@@ -95,49 +95,43 @@ export let CallHierarchyDirective = ['$timeout', 'prettySerializeFilter', functi
         let h = el.height();
               
         let tree = d3.layout.tree()
-          .size([w-margin*2, w-margin*2])
-          .nodeSize([70,70]);
+          .size([w-margin*2, w-margin*2]);
                     
         
-        let root = d3.select(el[0].tagName.toLowerCase())
+        let svg = d3.select(el[0].tagName.toLowerCase())
           .append("svg")
             .attr("width", w)
             .attr("height", h)
-            .append("g")
-            .attr("transform", `translate(${margin + (w/2)},${margin + h/2})`);
-                        
-        let svg = root.append("g")
-          .attr("container", "test")
-                                  
-        var zoom = d3.behavior.zoom()
-          .translate([0, 0])
-          .scale(2)
-          .scaleExtent([0, 8])
-          .on("zoom",   function zoomed(e) {
-            //g.style("stroke-width", 1.5 / d3.event['scale'] + "px");
-            d3.select(this).attr("transform", `translate(${d3.event['translate']}) scale(${d3.event['scale']})`);
-          })                    
+            .attr("preserveAspectRatio", "xMidYMid meet")
             
-        svg
-          .call(zoom)
-          .call(zoom.event);
-
-        svg
-          .call(zoom.translate([0,0]).scale(2).event)
-                                        
+        let root = svg
+            .append("g")
+                        
+        let sw = 400, 
+            sh = 400;
+                        
         scope.$watch('root + "||" + root.updated', function(r) {
-          update(scope.root, scope.frameId, svg, tree);
+          let bounds = (<any>root[0][0]).getBBox()
+          
+          sw  = Math.max(bounds.width,  sw);
+          sh  = Math.max(bounds.height, sh);
+          
+          let swm = sw * .1
+          let shm = sh * .1
+          let x  = bounds.x-swm/2
+          let y  = bounds.y-shm/2
 
-          let bounds = (<any>svg[0][0]).getBoundingClientRect();
-          let scale = .8 / Math.max(bounds.width / w, bounds.height / h);
-          let translate:[number,number] = [w / 2 - scale * bounds.left, h / 2 - scale * bounds.top];
-
+          let ar = (sw/sh);
+          tree.nodeSize([50/(ar*1.5),50*ar*2])
+          
+          let scale = Math.min((w/sw)*.8, (h/sh)*.8);
+          
           svg
             .transition()
-            .duration(delay)
-            .call(zoom
-              .translate(translate)
-              .scale(scale).event)
+            .duration(delay*.8)
+            .attr("viewBox", `${x} ${y} ${sw+swm} ${sh+shm}`);
+            
+          update(scope.root, scale, scope.frameId, root, tree);          
         });
       }, 100);
     }
