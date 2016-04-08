@@ -9,7 +9,7 @@ export let CallStackDirective = [function($timeout) {
     },
     template : `              
       <md-list flex>
-        <div ng-repeat="item in stack.slice().reverse()">
+        <div ng-repeat="item in stack.slice().reverse()" class="stack-item">
           <md-list-item class="md-3-line"" ng-click="null">
             <div class="md-list-item-text" layout="column">
               <h3>{{item.id}}</h3>

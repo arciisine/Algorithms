@@ -125,10 +125,8 @@ export let CallHierarchyDirective = ['$timeout', 'prettySerializeFilter', functi
           let ar = (bounds.width/bounds.height);
           tree.nodeSize([Math.min((50/ar*2),1000),Math.min((50*ar*2),100)])
           
-          let viewBox = `${x} ${y} ${sw+swm} ${sh+shm}`;
+          let viewBox = `${x} ${y} ${sw+swm} ${sh+shm}`;         
           
-          console.log(viewBox)
-                    
           svg
             .transition()
             .duration(delay*.8)
