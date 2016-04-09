@@ -1,4 +1,4 @@
-import {randomInt} from '../util';
+import {randomInt, Algo} from '../util';
  
 function matrixMultiply(matricies) {
   if (matricies.length === 1) {
@@ -26,7 +26,7 @@ function input(n) {
   return out;
 }
 
-export default {
+export default new Algo({
   fn : matrixMultiply,
   input : (n) => [input(n)]
-}
+});

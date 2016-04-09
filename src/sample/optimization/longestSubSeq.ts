@@ -1,4 +1,4 @@
-import {pickOne} from '../util'
+import {pickOne, Algo} from '../util'
 
 function longestSubSeq(a,b) {
   if (!a.length || !b.length) {
@@ -23,7 +23,7 @@ var input = (n) => {
   return [a,b]
 }
 
-export default {
+export default new Algo({
   fn : longestSubSeq,
   input
-}
+})

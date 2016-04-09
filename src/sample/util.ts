@@ -27,3 +27,29 @@ export function randomBinaryTree<T>(n:number, value:()=>T):Node<T> {
   out.right = randomBinaryTree(n-split, value);  
   return out;
 }
+
+type Fn = (...args:any[])=>any;
+
+export class Algo {
+  public title:string;
+  public description:string;
+  public fn:Fn 
+  public input:(n)=>any[] 
+  public globals:{[key:string]:Fn} = {}
+  
+  public constructor(
+    config: {
+      title?:string,
+      description?:string,
+      fn : Fn,
+      input:(n)=>any[],
+      globals?:{[key:string]:Fn}
+    }
+  ) {
+    this.fn = config.fn;
+    this.title = config.title || this.fn.name;
+    this.description = config.description;
+    this.input = config.input;
+    this.globals = config.globals || this.globals;
+  }
+}

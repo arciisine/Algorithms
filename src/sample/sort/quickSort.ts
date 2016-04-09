@@ -1,4 +1,4 @@
-import {randomNumbers} from '../util';
+import {randomInts,Algo} from '../util';
 
 function partition(items, left, right) {
   var pivot = items[Math.floor((right + left) / 2)];
@@ -31,8 +31,8 @@ function quickSort(items, left, right) {
   return items;
 }
       
-export default {
+export default new Algo({
   fn : quickSort,
   globals : { partition },
-  input : (n) => [randomNumbers(n)]
-}
+  input : n => [randomInts(n)]
+})

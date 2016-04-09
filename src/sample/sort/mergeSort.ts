@@ -1,4 +1,4 @@
-import {randomNumbers} from '../util';
+import {randomInts,Algo} from '../util';
 
 function merge(left, right) {
   var result = [];
@@ -19,8 +19,8 @@ function mergeSort(arr) {
   return merge(mergeSort(left), mergeSort(right));
 }
 
-export default {
+export default new Algo({
   fn : mergeSort,
-  input :(n) => [randomNumbers(n)],
+  input : n => [randomInts(n)],
   globals : { merge }
-}
+})

@@ -1,4 +1,4 @@
-import {randomInts} from '../util';
+import {randomInts,Algo} from '../util';
 
 function cutRod(prices, n) {
   if (n <= 0) return 0;
@@ -13,10 +13,12 @@ function cutRod(prices, n) {
   return max_val;
 }
 
-export default {
-  fn : cutRod,
-  input : (n) => {
-    let costs = randomInts(n).sort();
-    return [costs, n];
-  }
+let input = n => {
+  let costs = randomInts(n).sort();
+  return [costs, n];
 }
+
+export default new Algo({
+  fn: cutRod, 
+  input
+});

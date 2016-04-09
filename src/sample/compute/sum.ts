@@ -1,4 +1,4 @@
-import {randomBinaryTree, randomInt} from '../util';
+import {randomBinaryTree, randomInt,Algo} from '../util';
 
 function sum(node) {
   var ret = 0;
@@ -8,7 +8,7 @@ function sum(node) {
   return ret;
 };
 
-export default {
+export default new Algo({
   fn : sum,
-  input : (n) => [randomBinaryTree(n, randomInt.bind(null, 100, 10))] 
-}
+  input : n => [randomBinaryTree(n, randomInt.bind(null, 100, 10))] 
+})
