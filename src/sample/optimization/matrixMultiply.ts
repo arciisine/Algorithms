@@ -1,5 +1,5 @@
-"use strict";
-
+import {randomInt} from '../util';
+ 
 function matrixMultiply(matricies) {
   if (matricies.length === 1) {
     return [0, matricies[0],matricies[0]];
@@ -14,6 +14,19 @@ function matrixMultiply(matricies) {
   }
 }
 
+function input(n) {
+  let out = [];
+  let randomDim = randomInt.bind(null, 50, 20);
+  if (n > 0) {
+    out.push([randomDim(), randomDim()])
+  }
+  for (let i=1;i<n;i++) {
+    out.push([out[out.length-1][1], randomDim()])
+  }
+  return out;
+}
+
 export default {
-  fn : matrixMultiply
+  fn : matrixMultiply,
+  input : (n) => [input(n)]
 }

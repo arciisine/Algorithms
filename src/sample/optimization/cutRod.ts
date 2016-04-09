@@ -1,3 +1,5 @@
+import {randomInts} from '../util';
+
 function cutRod(prices, n) {
   if (n <= 0) return 0;
   var max_val = -1;
@@ -11,9 +13,10 @@ function cutRod(prices, n) {
   return max_val;
 }
 
-var input = [[1, 5, 8, 9, 10, 17, 17, 20], 8]
-
 export default {
   fn : cutRod,
-  input
+  input : (n) => {
+    let costs = randomInts(n).sort();
+    return [costs, n];
+  }
 }

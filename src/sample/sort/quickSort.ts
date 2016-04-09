@@ -34,5 +34,5 @@ function quickSort(items, left, right) {
 export default {
   fn : quickSort,
   globals : { partition },
-  input : () => [randomNumbers(30)]
+  input : (n) => [randomNumbers(n)]
 }

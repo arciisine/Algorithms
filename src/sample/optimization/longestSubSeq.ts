@@ -1,3 +1,5 @@
+import {pickOne} from '../util'
+
 function longestSubSeq(a,b) {
   if (!a.length || !b.length) {
     return []
@@ -10,10 +12,16 @@ function longestSubSeq(a,b) {
   }
 }
 
-var input = [
-  ["b","d","c","a","b","a"],
-  ["a","b","c","b","d","a","b"]
-]
+var input = (n) => {
+  let a = [];
+  let b = [];
+  let alpha = ['a','b','c','d','e']
+  for (let i = 0; i < n; i++) {
+    a.push(pickOne(alpha));
+    b.push(pickOne(alpha));
+  }
+  return [a,b]
+}
 
 export default {
   fn : longestSubSeq,

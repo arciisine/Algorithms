@@ -21,6 +21,6 @@ function mergeSort(arr) {
 
 export default {
   fn : mergeSort,
-  sample :() => [randomNumbers(30)],
+  input :(n) => [randomNumbers(n)],
   globals : { merge }
 }
