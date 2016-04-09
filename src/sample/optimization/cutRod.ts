@@ -11,9 +11,9 @@ function cutRod(prices, n) {
   return max_val;
 }
 
-var sample = [[1, 5, 8, 9, 10, 17, 17, 20], 8]
+var input = [[1, 5, 8, 9, 10, 17, 17, 20], 8]
 
 export default {
   fn : cutRod,
-  sample
+  input
 }

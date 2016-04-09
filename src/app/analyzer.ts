@@ -1,4 +1,5 @@
-import {data,Algo} from '../data/index';
+import * as _ from "lodash";
+import {samples,Algo} from '../sample/index';
 import {Analyzer} from '../analyzer/index';
 
 type Node = {
@@ -31,7 +32,10 @@ export class AnalyzerController {
   public activeFrameId:string;
   
   //Templates
-  public templates = data
+  public templates:{[key:string]:Algo} = 
+    _.fromPairs(
+      _.flatten(_.values(samples).map(x => _.values(x) as Algo[]))
+        .map(x => [x.fn.name, x])) as {[key:string]:Algo}
   
   //Inputs
   public algo:Function;
@@ -67,8 +71,8 @@ export class AnalyzerController {
     this.algoSource = algo.fn.toString()
       .replace(/^\s+/mg, v => v.replace(/\t|(    )/g, '  ').substring(11))
       
-    let arr = Array.isArray(algo.sample) ? 
-      algo.sample : (algo.sample as ()=>any)();
+    let arr = Array.isArray(algo.input) ? 
+      algo.input : (algo.input as ()=>any)();
       
     this.inputSource = `[\n  ${(arr || []).map(r => JSON.stringify(r)).join(',\n  ')}\n]`
     

@@ -4,7 +4,7 @@ function activitySelector(a, k) {
   while (m <= n && a[m][0] < a[k][1]) m+=1;
   return m <= n ? [m].concat(activitySelector(a, m)) : [];
 }
-var sample = [[
+var input = [[
   [1,4],
   [3,5],
   [0,6],
@@ -20,5 +20,5 @@ var sample = [[
 
 export default {
   fn : activitySelector,
-  sample
+  input
 }

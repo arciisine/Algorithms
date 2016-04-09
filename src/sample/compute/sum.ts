@@ -6,7 +6,7 @@ function sum(node) {
   return ret;
 };
 
-var sample = [{ 
+var input = [{ 
   value: 10, 
   left: { 
     value: 5,
@@ -33,5 +33,5 @@ var sample = [{
 
 export default {
   fn : sum,
-  sample : sample
+  input
 }

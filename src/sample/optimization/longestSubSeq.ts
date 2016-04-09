@@ -10,12 +10,12 @@ function longestSubSeq(a,b) {
   }
 }
 
-var sample = [
+var input = [
   ["b","d","c","a","b","a"],
   ["a","b","c","b","d","a","b"]
 ]
 
 export default {
   fn : longestSubSeq,
-  sample
+  input
 }

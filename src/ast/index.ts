@@ -46,13 +46,12 @@ export class AST {
   }
   
   static compile(node:FunctionExpression, globals:any):Function {
-    let src = `(function() {
+    let src = `(function() {     
       var id_ = new Date().getTime();
       var genSymbol = ${AST.genSymbol.toString()};
       ${Object.keys(globals || {}).map(k => `var ${k} = ${globals[k].toString()}`).join('\n')} 
       return ${escodegen.generate(node)}; 
     })()`;
-    console.log(src);
     return eval(src);
   }
 
@@ -76,7 +75,8 @@ export class AST {
   };
   
   static rewrite(fn:Function, visitor:Visitor, globals:any) {
-    let ast = AST.parse(fn);   
+    let ast = AST.parse(fn); 
+    console.log(ast);  
     ast = <FunctionExpression>AST.visit(visitor, ast);
     return AST.compile(ast, globals);
   }
